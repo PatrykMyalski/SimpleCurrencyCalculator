@@ -6,17 +6,17 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowDropDown
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.mutableStateListOf
-import androidx.compose.runtime.remember
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.patmya.simplecurrencycalculator.MInputState
 import com.patmya.simplecurrencycalculator.R
 
 
@@ -32,10 +32,9 @@ fun HomeScreen(viewModel: HomeScreenViewModel = viewModel()) {
     }
 
     Scaffold(
-        scaffoldState = scaffoldState,
-        topBar = {
+        scaffoldState = scaffoldState, topBar = {
             TopBar()
-        },
+        }, backgroundColor = MaterialTheme.colors.primary
     ) {
         Box(
             modifier = Modifier
@@ -64,6 +63,17 @@ fun ProgressIndicator(size: Int = 40, strokeWidth: Int = 1) {
 
 @Composable
 fun HomeScreenMainView() {
+
+    val firstInputState = remember {
+        mutableStateOf(MInputState("DKK", true, "69"))
+    }
+    val secondInputState = remember {
+        mutableStateOf(MInputState("USD", false, "2137"))
+    }
+    val thirdInputState = remember {
+        mutableStateOf(MInputState("PLN", false, "911"))
+    }
+
     Column(modifier = Modifier.fillMaxSize()) {
         Column(
             modifier = Modifier
@@ -71,9 +81,21 @@ fun HomeScreenMainView() {
                 .fillMaxHeight(0.5f)
                 .padding(horizontal = 20.dp)
         ) {
-            CurrencyInput(0.33f)
-            CurrencyInput(0.5f)
-            CurrencyInput()
+            CurrencyInput(0.33f, state = firstInputState, onClick = {
+                firstInputState.value = firstInputState.value.copy(active = true)
+                secondInputState.value = secondInputState.value.copy(active = false)
+                thirdInputState.value =  thirdInputState.value.copy(active = false)
+            }, onChange = {})
+            CurrencyInput(0.5f, state = secondInputState, onClick = {
+                firstInputState.value = firstInputState.value.copy(active = false)
+                secondInputState.value = secondInputState.value.copy(active = true)
+                thirdInputState.value =  thirdInputState.value.copy(active = false)
+            }, onChange = {})
+            CurrencyInput(state = thirdInputState, onClick = {
+                firstInputState.value = firstInputState.value.copy(active = false)
+                secondInputState.value = secondInputState.value.copy(active = false)
+                thirdInputState.value =  thirdInputState.value.copy(active = true)
+            }, onChange = {})
 
 
         }
@@ -89,8 +111,15 @@ fun HomeScreenMainView() {
 @Composable
 fun NumbersNest() {
     val keyboardValues = "123456789#0."
-    Text(text = "Exchange rates are provided by tralalalalalla")
+
+    val cardBGColor = MaterialTheme.colors.primaryVariant.copy(alpha = 0.4f)
+
+    Text(
+        text = "Exchange rates are provided by tralalalalalla",
+        color = MaterialTheme.colors.primaryVariant
+    )
     Row(modifier = Modifier.fillMaxSize()) {
+
         Column(
             modifier = Modifier
                 .padding(top = 20.dp)
@@ -98,7 +127,7 @@ fun NumbersNest() {
                 .fillMaxHeight(0.9f),
             verticalArrangement = Arrangement.SpaceBetween,
 
-        ) {
+            ) {
             KeyboardRow(numbers = "123", onClick = {/*TODO*/ })
             KeyboardRow(numbers = "456", onClick = {/*TODO*/ })
             KeyboardRow(numbers = "789", onClick = {/*TODO*/ })
@@ -111,15 +140,42 @@ fun NumbersNest() {
                 .fillMaxHeight(0.9f),
             verticalArrangement = Arrangement.SpaceBetween
         ) {
-            Card(modifier = Modifier.fillMaxHeight(0.5f).fillMaxWidth(0.8f), shape = CircleShape, elevation = 1.dp) {
-                Row(modifier = Modifier.fillMaxSize().clickable { /*TODO*/ }, verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.Center) {
-                    Text(text = "AC", fontSize = 24.sp)
+            Card(
+                modifier = Modifier
+                    .fillMaxHeight(0.5f)
+                    .fillMaxWidth(0.8f),
+                shape = CircleShape,
+                elevation = 1.dp,
+                backgroundColor = cardBGColor
+            ) {
+                Row(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .clickable { /*TODO*/ },
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.Center
+                ) {
+                    Text(
+                        text = "AC",
+                        fontSize = 24.sp,
+                        fontWeight = FontWeight(600),
+                        color = MaterialTheme.colors.secondary
+                    )
                 }
             }
-            Card(modifier = Modifier.fillMaxSize(0.8f), shape = CircleShape, elevation = 1.dp) {
-                Icon(modifier = Modifier.fillMaxSize().clickable { /*TODO*/ },
+            Card(
+                modifier = Modifier.fillMaxSize(0.8f),
+                shape = CircleShape,
+                elevation = 1.dp,
+                backgroundColor = cardBGColor
+            ) {
+                Icon(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .clickable { /*TODO*/ },
                     painter = painterResource(id = R.drawable.backspace),
-                    contentDescription = "arrow back"
+                    contentDescription = "arrow back",
+                    tint = MaterialTheme.colors.secondary
                 )
             }
         }
@@ -135,8 +191,13 @@ fun KeyboardRow(numbers: String, onClick: (number: Char) -> Unit) {
 
             val modifier = if (i.toString() != " ") Modifier.clickable { onClick(i) } else Modifier
 
-            Card(modifier = Modifier.size(70.dp), shape = CircleShape, elevation = 0.dp) {
-                    Text(text = i.toString(), modifier = modifier, fontSize = 38.sp, textAlign = TextAlign.Center)
+            Card(modifier = Modifier.size(70.dp), shape = CircleShape, elevation = 0.dp, backgroundColor = MaterialTheme.colors.primary) {
+                Text(
+                    text = i.toString(),
+                    modifier = modifier,
+                    fontSize = 38.sp,
+                    textAlign = TextAlign.Center
+                )
             }
         }
 
@@ -145,7 +206,13 @@ fun KeyboardRow(numbers: String, onClick: (number: Char) -> Unit) {
 
 
 @Composable
-fun CurrencyInput(height: Float = 1f) {
+fun CurrencyInput(height: Float = 1f, state: MutableState<MInputState>, onClick: () -> Unit, onChange: () -> Unit) {
+    // TODO change responsible to state
+
+    LaunchedEffect(key1 = state.value.active) {
+        println("State active value: ${state.value.active}")
+    }
+
     Row(
         modifier = Modifier
             .fillMaxHeight(height)
@@ -154,13 +221,26 @@ fun CurrencyInput(height: Float = 1f) {
         horizontalArrangement = Arrangement.SpaceBetween
     ) {
         Row(
-            modifier = Modifier.fillMaxWidth(0.5f), verticalAlignment = Alignment.CenterVertically
+            modifier = Modifier.fillMaxWidth(0.2f), verticalAlignment = Alignment.CenterVertically
         ) {
-            Text(text = "DKK", fontSize = 22.sp) // TODO temporary
-            Icon(imageVector = Icons.Default.ArrowDropDown, contentDescription = "arrow down")
+            Row(modifier = Modifier.clickable { onChange() }) {
+                Text(text = "DKK", fontSize = 22.sp) // TODO temporary
+                Icon(imageVector = Icons.Default.ArrowDropDown, contentDescription = "arrow down")
+            }
         }
-        Column(modifier = Modifier.fillMaxWidth(), horizontalAlignment = Alignment.End) {
-            Text(text = "0", fontSize = 27.sp, textAlign = TextAlign.End) //TODO temporary
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .clickable {
+                    onClick() },
+            horizontalAlignment = Alignment.End
+        ) {
+            Text(
+                text = "0",
+                fontSize = 27.sp,
+                textAlign = TextAlign.End,
+                color = if (state.value.active!!) MaterialTheme.colors.secondary else MaterialTheme.colors.onPrimary
+            ) //TODO temporary
             Text(text = "Danish krone", fontSize = 12.sp)
         }
     }
