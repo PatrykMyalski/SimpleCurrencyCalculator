@@ -1,6 +1,7 @@
 package com.patmya.simplecurrencycalculator.homeScreen
 
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.*
@@ -27,9 +28,6 @@ fun HomeScreen(viewModel: HomeScreenViewModel = viewModel()) {
 
     val scaffoldState = rememberScaffoldState()
 
-    val chosenCurrencyState = remember {
-        mutableStateListOf("PLN", "DKK", "USD")
-    }
 
     Scaffold(
         scaffoldState = scaffoldState, topBar = {
@@ -46,7 +44,7 @@ fun HomeScreen(viewModel: HomeScreenViewModel = viewModel()) {
             verticalArrangement = Arrangement.Center,
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            HomeScreenMainView()
+            HomeScreenMainView(viewModel)
         }
 
     }
@@ -62,17 +60,8 @@ fun ProgressIndicator(size: Int = 40, strokeWidth: Int = 1) {
 
 
 @Composable
-fun HomeScreenMainView() {
+fun HomeScreenMainView(viewModel: HomeScreenViewModel) {
 
-    val firstInputState = remember {
-        mutableStateOf(MInputState("DKK", true, "69"))
-    }
-    val secondInputState = remember {
-        mutableStateOf(MInputState("USD", false, "2137"))
-    }
-    val thirdInputState = remember {
-        mutableStateOf(MInputState("PLN", false, "911"))
-    }
 
     Column(modifier = Modifier.fillMaxSize()) {
         Column(
@@ -81,38 +70,42 @@ fun HomeScreenMainView() {
                 .fillMaxHeight(0.5f)
                 .padding(horizontal = 20.dp)
         ) {
-            CurrencyInput(0.33f, state = firstInputState, onClick = {
-                firstInputState.value = firstInputState.value.copy(active = true)
+            CurrencyInput(0.33f, state = viewModel.firstInputState, onClick = {
+                viewModel.focusInput(1)
+/*                firstInputState.value = firstInputState.value.copy(active = true)
                 secondInputState.value = secondInputState.value.copy(active = false)
-                thirdInputState.value =  thirdInputState.value.copy(active = false)
-            }, onChange = {})
-            CurrencyInput(0.5f, state = secondInputState, onClick = {
-                firstInputState.value = firstInputState.value.copy(active = false)
+                thirdInputState.value =  thirdInputState.value.copy(active = false)*/
+            }, onChangeCurrency = {})
+            CurrencyInput(0.5f, state = viewModel.secondInputState, onClick = {
+                viewModel.focusInput(2)
+/*                firstInputState.value = firstInputState.value.copy(active = false)
                 secondInputState.value = secondInputState.value.copy(active = true)
-                thirdInputState.value =  thirdInputState.value.copy(active = false)
-            }, onChange = {})
-            CurrencyInput(state = thirdInputState, onClick = {
-                firstInputState.value = firstInputState.value.copy(active = false)
+                thirdInputState.value =  thirdInputState.value.copy(active = false)*/
+            }, onChangeCurrency = {})
+            CurrencyInput(state = viewModel.thirdInputState, onClick = {
+                viewModel.focusInput(3)
+/*                firstInputState.value = firstInputState.value.copy(active = false)
                 secondInputState.value = secondInputState.value.copy(active = false)
-                thirdInputState.value =  thirdInputState.value.copy(active = true)
-            }, onChange = {})
+                thirdInputState.value =  thirdInputState.value.copy(active = true)*/
+            }, onChangeCurrency = {})
 
 
         }
         Column(
             modifier = Modifier.fillMaxSize(), horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            NumbersNest()
+            NumbersNest(onNumberInput = {viewModel.changeInput(it)}, onClear = {viewModel.clearInputs()}, onBackSpace = {viewModel.backSpace()})
+
+
         }
     }
 
 }
 
 @Composable
-fun NumbersNest() {
-    val keyboardValues = "123456789#0."
+fun NumbersNest(onNumberInput: (number: Char) -> Unit, onClear: () -> Unit, onBackSpace: () -> Unit ) {
 
-    val cardBGColor = MaterialTheme.colors.primaryVariant.copy(alpha = 0.4f)
+    val cardBGColor = MaterialTheme.colors.primaryVariant
 
     Text(
         text = "Exchange rates are provided by tralalalalalla",
@@ -128,10 +121,10 @@ fun NumbersNest() {
             verticalArrangement = Arrangement.SpaceBetween,
 
             ) {
-            KeyboardRow(numbers = "123", onClick = {/*TODO*/ })
-            KeyboardRow(numbers = "456", onClick = {/*TODO*/ })
-            KeyboardRow(numbers = "789", onClick = {/*TODO*/ })
-            KeyboardRow(numbers = " 0.", onClick = {/*TODO*/ })
+            KeyboardRow(numbers = "123") { onNumberInput(it) }
+            KeyboardRow(numbers = "456"){ onNumberInput(it) }
+            KeyboardRow(numbers = "789") { onNumberInput(it) }
+            KeyboardRow(numbers = " 0.") { onNumberInput(it) }
         }
         Column(
             modifier = Modifier
@@ -151,7 +144,7 @@ fun NumbersNest() {
                 Row(
                     modifier = Modifier
                         .fillMaxSize()
-                        .clickable { /*TODO*/ },
+                        .clickable { onClear() },
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.Center
                 ) {
@@ -172,7 +165,7 @@ fun NumbersNest() {
                 Icon(
                     modifier = Modifier
                         .fillMaxSize()
-                        .clickable { /*TODO*/ },
+                        .clickable { onBackSpace() },
                     painter = painterResource(id = R.drawable.backspace),
                     contentDescription = "arrow back",
                     tint = MaterialTheme.colors.secondary
@@ -206,12 +199,9 @@ fun KeyboardRow(numbers: String, onClick: (number: Char) -> Unit) {
 
 
 @Composable
-fun CurrencyInput(height: Float = 1f, state: MutableState<MInputState>, onClick: () -> Unit, onChange: () -> Unit) {
-    // TODO change responsible to state
+fun CurrencyInput(height: Float = 1f, state: MutableState<MInputState>, onClick: () -> Unit, onChangeCurrency: () -> Unit) {
 
-    LaunchedEffect(key1 = state.value.active) {
-        println("State active value: ${state.value.active}")
-    }
+    val interactionSource = MutableInteractionSource()
 
     Row(
         modifier = Modifier
@@ -223,7 +213,7 @@ fun CurrencyInput(height: Float = 1f, state: MutableState<MInputState>, onClick:
         Row(
             modifier = Modifier.fillMaxWidth(0.2f), verticalAlignment = Alignment.CenterVertically
         ) {
-            Row(modifier = Modifier.clickable { onChange() }) {
+            Row(modifier = Modifier.clickable(interactionSource = interactionSource, indication = null) { onChangeCurrency() }) {
                 Text(text = "DKK", fontSize = 22.sp) // TODO temporary
                 Icon(imageVector = Icons.Default.ArrowDropDown, contentDescription = "arrow down")
             }
@@ -231,12 +221,12 @@ fun CurrencyInput(height: Float = 1f, state: MutableState<MInputState>, onClick:
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .clickable {
+                .clickable(interactionSource = interactionSource, indication = null) {
                     onClick() },
             horizontalAlignment = Alignment.End
         ) {
             Text(
-                text = "0",
+                text = state.value.value.toString(),
                 fontSize = 27.sp,
                 textAlign = TextAlign.End,
                 color = if (state.value.active!!) MaterialTheme.colors.secondary else MaterialTheme.colors.onPrimary
@@ -248,7 +238,7 @@ fun CurrencyInput(height: Float = 1f, state: MutableState<MInputState>, onClick:
 
 @Composable
 fun TopBar() {
-    Card(modifier = Modifier.fillMaxWidth(), elevation = 0.dp) {
+    Card(modifier = Modifier.fillMaxWidth(), elevation = 0.dp, backgroundColor = MaterialTheme.colors.primary) {
         // TODO maybe change to column and add ad
         Row(
             modifier = Modifier.fillMaxWidth(),
