@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "128431501870",
+    "project_id": "simplecurrencycalculator",
+    "storage_bucket": "simplecurrencycalculator.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:128431501870:android:1accff11c1c34835fba5bf",
+        "android_client_info": {
+          "package_name": "com.patmya.simplecurrencycalculator"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "128431501870-2kg619l93hppmdaocu3g17ccqn8qr2hf.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDHz8txcCnoAIrx2hnK3WpK0hnH4VuXmUo"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "128431501870-2kg619l93hppmdaocu3g17ccqn8qr2hf.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

@@ -72,21 +72,12 @@ fun HomeScreenMainView(viewModel: HomeScreenViewModel) {
         ) {
             CurrencyInput(0.33f, state = viewModel.firstInputState, onClick = {
                 viewModel.focusInput(1)
-/*                firstInputState.value = firstInputState.value.copy(active = true)
-                secondInputState.value = secondInputState.value.copy(active = false)
-                thirdInputState.value =  thirdInputState.value.copy(active = false)*/
             }, onChangeCurrency = {})
             CurrencyInput(0.5f, state = viewModel.secondInputState, onClick = {
                 viewModel.focusInput(2)
-/*                firstInputState.value = firstInputState.value.copy(active = false)
-                secondInputState.value = secondInputState.value.copy(active = true)
-                thirdInputState.value =  thirdInputState.value.copy(active = false)*/
             }, onChangeCurrency = {})
             CurrencyInput(state = viewModel.thirdInputState, onClick = {
                 viewModel.focusInput(3)
-/*                firstInputState.value = firstInputState.value.copy(active = false)
-                secondInputState.value = secondInputState.value.copy(active = false)
-                thirdInputState.value =  thirdInputState.value.copy(active = true)*/
             }, onChangeCurrency = {})
 
 
