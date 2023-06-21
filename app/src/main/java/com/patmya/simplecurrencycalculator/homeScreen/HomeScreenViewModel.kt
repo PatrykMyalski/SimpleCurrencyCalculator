@@ -2,7 +2,18 @@ package com.patmya.simplecurrencycalculator.homeScreen
 
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
+import com.google.firebase.firestore.ktx.firestore
+import com.google.firebase.ktx.Firebase
+import com.google.gson.Gson
 import com.patmya.simplecurrencycalculator.MInputState
+import com.patmya.simplecurrencycalculator.model.ApiData
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import okhttp3.OkHttpClient
+import okhttp3.Request
+import okhttp3.Response
 
 class HomeScreenViewModel : ViewModel() {
 
@@ -67,6 +78,42 @@ class HomeScreenViewModel : ViewModel() {
                 }
             }
         }
+    }
+
+    fun transformData(){
+
+
+        CoroutineScope(Dispatchers.Main).launch {
+            println("start")
+            withContext(Dispatchers.IO){
+                val client = OkHttpClient()
+
+                val request = Request.Builder()
+                    .url("https://api.currencyapi.com/v3/currencies?apikey=DfHgL2ZN6L0kDaxrBKOwgDhYQeHIlyjkQ7R6dNMl&currencies=")
+                    .build()
+
+                val response: Response = client.newCall(request).execute()
+
+                if (response.isSuccessful) {
+                    val responseBody = response.body?.string()
+
+                    val gson = Gson()
+
+                    val data = gson.fromJson(responseBody, ApiData::class.java)
+
+                    val db = Firebase.firestore
+
+                    db.collection("info").document("GyyBIwmt8fDfTBAipZ5h").set(data).addOnSuccessListener {
+                        println("data successfully posted on firebase firestore")
+                    }
+
+                } else {
+                    println("error occurs")
+                }
+            }
+            println("done")
+        }
+
     }
 }
 

@@ -62,6 +62,9 @@ fun ProgressIndicator(size: Int = 40, strokeWidth: Int = 1) {
 @Composable
 fun HomeScreenMainView(viewModel: HomeScreenViewModel) {
 
+    // TODO only for development
+    //viewModel.transformData()
+
 
     Column(modifier = Modifier.fillMaxSize()) {
         Column(
