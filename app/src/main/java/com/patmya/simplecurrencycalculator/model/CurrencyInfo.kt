@@ -1,6 +1,6 @@
 package com.patmya.simplecurrencycalculator.model
 
-data class ApiCurrency(
+data class CurrencyInfo(
     var symbol: String? = null,
     var name: String? = null,
     var symbol_native: String? = null,

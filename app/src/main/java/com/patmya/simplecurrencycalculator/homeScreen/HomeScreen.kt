@@ -28,25 +28,40 @@ fun HomeScreen(viewModel: HomeScreenViewModel = viewModel()) {
 
     val scaffoldState = rememberScaffoldState()
 
+    if (!viewModel.dataLoaded.value) {
+        viewModel.loadData()
+    }
 
-    Scaffold(
-        scaffoldState = scaffoldState, topBar = {
-            TopBar()
-        }, backgroundColor = MaterialTheme.colors.primary
+
+    if (!viewModel.dataLoaded.value) Column(
+        modifier = Modifier.fillMaxSize(),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center
     ) {
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(it)
-        )
-        Column(
-            modifier = Modifier.fillMaxSize(),
-            verticalArrangement = Arrangement.Center,
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            HomeScreenMainView(viewModel)
-        }
+        ProgressIndicator()
+    }
+    else {
 
+
+        Scaffold(
+            scaffoldState = scaffoldState, topBar = {
+                TopBar()
+            }, backgroundColor = MaterialTheme.colors.primary
+        ) {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(it)
+            )
+            Column(
+                modifier = Modifier.fillMaxSize(),
+                verticalArrangement = Arrangement.Center,
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                HomeScreenMainView(viewModel = viewModel)
+            }
+
+        }
     }
 }
 
@@ -54,8 +69,7 @@ fun HomeScreen(viewModel: HomeScreenViewModel = viewModel()) {
 @Composable
 fun ProgressIndicator(size: Int = 40, strokeWidth: Int = 1) {
     CircularProgressIndicator(
-        modifier = Modifier.size(size.dp), strokeWidth = strokeWidth.dp, strokeCap = StrokeCap.Round
-    )
+        modifier = Modifier.size(size.dp), strokeWidth = strokeWidth.dp, strokeCap = StrokeCap.Round, color = MaterialTheme.colors.secondary)
 }
 
 
@@ -88,7 +102,10 @@ fun HomeScreenMainView(viewModel: HomeScreenViewModel) {
         Column(
             modifier = Modifier.fillMaxSize(), horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            NumbersNest(onNumberInput = {viewModel.changeInput(it)}, onClear = {viewModel.clearInputs()}, onBackSpace = {viewModel.backSpace()})
+            NumbersNest(
+                onNumberInput = { viewModel.changeInput(it) },
+                onClear = { viewModel.clearInputs() },
+                onBackSpace = { viewModel.backSpace() })
 
 
         }
@@ -97,7 +114,11 @@ fun HomeScreenMainView(viewModel: HomeScreenViewModel) {
 }
 
 @Composable
-fun NumbersNest(onNumberInput: (number: Char) -> Unit, onClear: () -> Unit, onBackSpace: () -> Unit ) {
+fun NumbersNest(
+    onNumberInput: (number: Char) -> Unit,
+    onClear: () -> Unit,
+    onBackSpace: () -> Unit,
+) {
 
     val cardBGColor = MaterialTheme.colors.primaryVariant
 
@@ -116,7 +137,7 @@ fun NumbersNest(onNumberInput: (number: Char) -> Unit, onClear: () -> Unit, onBa
 
             ) {
             KeyboardRow(numbers = "123") { onNumberInput(it) }
-            KeyboardRow(numbers = "456"){ onNumberInput(it) }
+            KeyboardRow(numbers = "456") { onNumberInput(it) }
             KeyboardRow(numbers = "789") { onNumberInput(it) }
             KeyboardRow(numbers = " 0.") { onNumberInput(it) }
         }
@@ -178,7 +199,12 @@ fun KeyboardRow(numbers: String, onClick: (number: Char) -> Unit) {
 
             val modifier = if (i.toString() != " ") Modifier.clickable { onClick(i) } else Modifier
 
-            Card(modifier = Modifier.size(70.dp), shape = CircleShape, elevation = 0.dp, backgroundColor = MaterialTheme.colors.primary) {
+            Card(
+                modifier = Modifier.size(70.dp),
+                shape = CircleShape,
+                elevation = 0.dp,
+                backgroundColor = MaterialTheme.colors.primary
+            ) {
                 Text(
                     text = i.toString(),
                     modifier = modifier,
@@ -193,7 +219,12 @@ fun KeyboardRow(numbers: String, onClick: (number: Char) -> Unit) {
 
 
 @Composable
-fun CurrencyInput(height: Float = 1f, state: MutableState<MInputState>, onClick: () -> Unit, onChangeCurrency: () -> Unit) {
+fun CurrencyInput(
+    height: Float = 1f,
+    state: MutableState<MInputState>,
+    onClick: () -> Unit,
+    onChangeCurrency: () -> Unit,
+) {
 
     val interactionSource = MutableInteractionSource()
 
@@ -207,7 +238,11 @@ fun CurrencyInput(height: Float = 1f, state: MutableState<MInputState>, onClick:
         Row(
             modifier = Modifier.fillMaxWidth(0.2f), verticalAlignment = Alignment.CenterVertically
         ) {
-            Row(modifier = Modifier.clickable(interactionSource = interactionSource, indication = null) { onChangeCurrency() }) {
+            Row(
+                modifier = Modifier.clickable(
+                    interactionSource = interactionSource,
+                    indication = null
+                ) { onChangeCurrency() }) {
                 Text(text = "DKK", fontSize = 22.sp) // TODO temporary
                 Icon(imageVector = Icons.Default.ArrowDropDown, contentDescription = "arrow down")
             }
@@ -216,7 +251,8 @@ fun CurrencyInput(height: Float = 1f, state: MutableState<MInputState>, onClick:
             modifier = Modifier
                 .fillMaxWidth()
                 .clickable(interactionSource = interactionSource, indication = null) {
-                    onClick() },
+                    onClick()
+                },
             horizontalAlignment = Alignment.End
         ) {
             Text(
@@ -232,7 +268,11 @@ fun CurrencyInput(height: Float = 1f, state: MutableState<MInputState>, onClick:
 
 @Composable
 fun TopBar() {
-    Card(modifier = Modifier.fillMaxWidth(), elevation = 0.dp, backgroundColor = MaterialTheme.colors.primary) {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        elevation = 0.dp,
+        backgroundColor = MaterialTheme.colors.primary
+    ) {
         // TODO maybe change to column and add ad
         Row(
             modifier = Modifier.fillMaxWidth(),
