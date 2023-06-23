@@ -1,14 +1,21 @@
 package com.patmya.simplecurrencycalculator.homeScreen
 
+import androidx.compose.animation.*
+import androidx.compose.animation.core.MutableTransitionState
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -55,7 +62,6 @@ fun HomeScreen(viewModel: HomeScreenViewModel = viewModel()) {
             ) {
                 HomeScreenMainView(viewModel = viewModel)
             }
-
         }
     }
 }
@@ -66,40 +72,112 @@ fun HomeScreenMainView(viewModel: HomeScreenViewModel) {
 
     // TODO only for development
     //viewModel.transformData()
+    val showCurrencyChange = remember {
+        mutableStateOf(false)
+    }
 
 
-    Column(modifier = Modifier.fillMaxSize()) {
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .fillMaxHeight(0.5f)
-                .padding(horizontal = 20.dp)
-        ) {
-            CurrencyInput(0.33f, state = viewModel.firstInputState, onClick = {
-                viewModel.focusInput(1)
-            }, onChangeCurrency = {})
-            CurrencyInput(0.5f, state = viewModel.secondInputState, onClick = {
-                viewModel.focusInput(2)
-            }, onChangeCurrency = {})
-            CurrencyInput(state = viewModel.thirdInputState, onClick = {
-                viewModel.focusInput(3)
-            }, onChangeCurrency = {})
-
-
+    Box(modifier = Modifier.fillMaxSize()) {
+        Column(modifier = Modifier.fillMaxSize()) {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .fillMaxHeight(0.5f)
+                    .padding(horizontal = 20.dp)
+            ) {
+                CurrencyInput(0.33f, state = viewModel.firstInputState, onClick = {
+                    viewModel.focusInput(1)
+                }, onChangeCurrency = { showCurrencyChange.value = true })
+                CurrencyInput(0.5f, state = viewModel.secondInputState, onClick = {
+                    viewModel.focusInput(2)
+                }, onChangeCurrency = { showCurrencyChange.value = true })
+                CurrencyInput(state = viewModel.thirdInputState, onClick = {
+                    viewModel.focusInput(3)
+                }, onChangeCurrency = { showCurrencyChange.value = true })
+            }
+            Column(
+                modifier = Modifier.fillMaxSize(),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                NumbersNest(onNumberInput = { viewModel.changeInput(it) },
+                    onClear = { viewModel.clearInputs() },
+                    onBackSpace = { viewModel.backSpace() })
+            }
         }
-        Column(
-            modifier = Modifier.fillMaxSize(), horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            NumbersNest(onNumberInput = { viewModel.changeInput(it) },
-                onClear = { viewModel.clearInputs() },
-                onBackSpace = { viewModel.backSpace() })
+        if (showCurrencyChange.value) {
+            CurrencyChange(viewModel) {
+                showCurrencyChange.value = false
+            }
+        }
+    }
+}
+
+@Composable
+fun CurrencyChange(viewModel: HomeScreenViewModel, onExit: () -> Unit) {
 
 
+    val interactionSource = MutableInteractionSource()
+
+    val animationState = remember {
+        MutableTransitionState(false).apply {
+            targetState = true
+        }
+    }
+    LaunchedEffect(key1 = animationState.currentState) {
+        if (!animationState.currentState && !animationState.targetState) {
+            onExit()
         }
     }
 
+    AnimatedVisibility(
+        visibleState = animationState, enter = slideInVertically(), exit = shrinkVertically()
+    ) {
+        Card(
+            modifier = Modifier
+                .fillMaxSize()
+                .clickable(interactionSource = interactionSource, indication = null) {
+                    animationState.targetState = false
+                },
+            backgroundColor = Color(0, 0, 0, 20),
+            elevation = 0.dp,
+            shape = RoundedCornerShape(0.dp)
+
+        ) {
+            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                Column(
+                    modifier = Modifier
+                        .fillMaxHeight(0.9f)
+                        .background(Color.Black)
+                ) {
+                    CurrenciesColumn(viewModel)
+                }
+                Card(modifier = Modifier
+                    .padding(top = 15.dp)
+                    .clickable { animationState.targetState = false },
+                    shape = RoundedCornerShape(10.dp),
+                    backgroundColor = MaterialTheme.colors.primary) {
+                    Text(
+                        modifier = Modifier.padding(horizontal = 10.dp, vertical = 5.dp),
+                        text = "Cancel",
+                        fontSize = 24.sp,
+                        color = MaterialTheme.colors.secondary,
+                        textAlign = TextAlign.Center
+                    )
+                }
+            }
+        }
+    }
 }
 
+@Composable
+fun CurrenciesColumn(viewModel: HomeScreenViewModel) {
+
+    Column(modifier = Modifier.verticalScroll(rememberScrollState())) {
+        for (i in viewModel.listForChangeCurrency) {
+            CurrencyChangeLabel(code = i[0]!!, title = i[1]!!, onClick = { TODO() })
+        }
+    }
+}
 
 @Composable
 fun CurrencyInput(
@@ -119,13 +197,17 @@ fun CurrencyInput(
         horizontalArrangement = Arrangement.SpaceBetween
     ) {
         Row(
-            modifier = Modifier.fillMaxWidth(0.2f), verticalAlignment = Alignment.CenterVertically
+            modifier = Modifier.fillMaxWidth(0.2f),
+            verticalAlignment = Alignment.CenterVertically
         ) {
             Row(modifier = Modifier.clickable(
                 interactionSource = interactionSource, indication = null
             ) { onChangeCurrency() }) {
                 Text(text = "DKK", fontSize = 22.sp) // TODO temporary
-                Icon(imageVector = Icons.Default.ArrowDropDown, contentDescription = "arrow down")
+                Icon(
+                    imageVector = Icons.Default.ArrowDropDown,
+                    contentDescription = "arrow down"
+                )
             }
         }
         Column(
@@ -145,4 +227,5 @@ fun CurrencyInput(
         }
     }
 }
+
 

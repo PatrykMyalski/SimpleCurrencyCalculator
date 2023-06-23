@@ -3,6 +3,7 @@ package com.patmya.simplecurrencycalculator.homeScreen
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -34,6 +35,23 @@ fun TopBar() {
     }
 }
 
+@Composable
+fun CurrencyChangeLabel(code: String, title: String, onClick: (String) -> Unit) {
+    Card(modifier = Modifier
+        .clickable { onClick(code) },
+        shape = RoundedCornerShape(0.dp)
+    ) {
+        Row(
+            modifier = Modifier.padding(10.dp)
+                .fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(text = code, fontSize = 20.sp)
+            Text(text = title, fontSize = 20.sp)
+        }
+    }
+}
 
 @Composable
 fun ProgressIndicator(size: Int = 40, strokeWidth: Int = 1) {

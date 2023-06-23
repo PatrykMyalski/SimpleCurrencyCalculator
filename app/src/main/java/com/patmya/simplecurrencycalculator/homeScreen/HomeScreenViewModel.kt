@@ -29,6 +29,8 @@ class HomeScreenViewModel : ViewModel() {
 
     val thirdInputState = mutableStateOf(MInputState("PLN", false, "911"))
 
+    var listForChangeCurrency: List<List<String?>> = listOf()
+
     val currenciesInfo = mutableStateOf<CurrenciesInfo?>(null)
 
     val currenciesData = mutableStateOf<CurrenciesData?>(null)
@@ -108,12 +110,18 @@ class HomeScreenViewModel : ViewModel() {
 
     fun loadData() {
         infoReference.get().addOnSuccessListener { infoData ->
-            val i = infoData.toObject<CurrenciesInfo>()
-            currenciesInfo.value = i
+            val j = infoData.toObject<CurrenciesInfo>()
+            currenciesInfo.value = j
             dataReference.get().addOnSuccessListener { data ->
                 val d = data.toObject<CurrenciesData>()
                 currenciesData.value = d
                 dataLoaded.value = currenciesInfo.value != null && currenciesData.value != null
+
+
+                listForChangeCurrency = currenciesInfo.value?.data!!.map { (key, value) ->
+                    listOf(key, value.name)
+                }.sortedBy { it[0] }
+
                 println(currenciesInfo.value)
                 println(currenciesData.value)
             }.addOnFailureListener {
