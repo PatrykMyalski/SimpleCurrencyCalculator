@@ -1,5 +1,6 @@
 package com.patmya.simplecurrencycalculator.homeScreen
 
+
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import com.google.firebase.firestore.ktx.firestore
@@ -19,15 +20,21 @@ import okhttp3.Response
 
 class HomeScreenViewModel : ViewModel() {
 
+
     private val db = Firebase.firestore
     private val infoReference = db.collection("info").document("GyyBIwmt8fDfTBAipZ5h")
     private val dataReference = db.collection("data").document("6uf5lDeR8fpW0TOntk3V")
 
-    val firstInputState = mutableStateOf(MInputState("DKK", true, "69"))
 
-    val secondInputState = mutableStateOf(MInputState("USD", false, "2137"))
+    val firstInputState = mutableStateOf(MInputState())
 
-    val thirdInputState = mutableStateOf(MInputState("PLN", false, "911"))
+    val secondInputState = mutableStateOf(MInputState())
+
+    val thirdInputState = mutableStateOf(MInputState())
+
+    var indexOfActive = mutableStateOf<Int?>(null)
+
+    val currenciesChangeMenuOpenedFrom = mutableStateOf(0)
 
     var listForChangeCurrency: List<List<String?>> = listOf()
 
@@ -39,6 +46,7 @@ class HomeScreenViewModel : ViewModel() {
 
     private val listOfInputs = arrayListOf(firstInputState, secondInputState, thirdInputState)
 
+    //TODO reduce boilerplate code, add full name variable to inputState class blueprint, test
 
     private fun addNumbers(currentNumber: String, adding: Char): String {
         //TODO change reaction on '.'
@@ -55,36 +63,83 @@ class HomeScreenViewModel : ViewModel() {
         )
     }
 
+    private fun calculateValue(
+        calculateToUsdOfBaseInput: Double,
+        valueOfActiveInput: String,
+        calculateToUsdOfActiveInput: Double,
+    ): String {
+        //TODO TEST
+        return (valueOfActiveInput.toDouble() * calculateToUsdOfActiveInput * calculateToUsdOfBaseInput).toString()
+    }
+
     fun focusInput(position: Int) {
-        firstInputState.value = firstInputState.value.copy(active = position == 1)
-        secondInputState.value = secondInputState.value.copy(active = position == 2)
-        thirdInputState.value = thirdInputState.value.copy(active = position == 3)
+        indexOfActive.value = position
+        firstInputState.value = firstInputState.value.copy(active = position == 0)
+        secondInputState.value = secondInputState.value.copy(active = position == 1)
+        thirdInputState.value = thirdInputState.value.copy(active = position == 2)
     }
 
     fun changeInput(number: Char) {
+        //TODO TEST
+        val valueOfActiveInput = listOfInputs[indexOfActive.value!!].value.value + number
+
+        val calculateToUsdOfActiveInput = listOfInputs[indexOfActive.value!!].value.calculateToUSD
 
         for ((index, inputState) in listOfInputs.withIndex()) {
-            if (inputState.value.active!!) {
-                when (index) {
-                    0 -> firstInputState.value = firstInputState.value.copy(
-                        value = addNumbers(
-                            inputState.value.value!!, number
+            when (index) {
+                0 -> firstInputState.value = firstInputState.value.copy(
+                    value = if (inputState.value.active!!) {
+                        addNumbers(inputState.value.value!!, number)
+                    } else {
+                        calculateValue(
+                            inputState.value.calculateToUSD!!,
+                            valueOfActiveInput,
+                            calculateToUsdOfActiveInput!!
                         )
-                    )
-                    1 -> secondInputState.value = secondInputState.value.copy(
-                        value = addNumbers(
-                            inputState.value.value!!, number
+                    }
+                )
+                1 -> secondInputState.value = secondInputState.value.copy(
+                    value = if (inputState.value.active!!) {
+                        addNumbers(inputState.value.value!!, number)
+                    } else {
+                        calculateValue(
+                            inputState.value.calculateToUSD!!,
+                            valueOfActiveInput,
+                            calculateToUsdOfActiveInput!!
                         )
-                    )
-                    2 -> thirdInputState.value = thirdInputState.value.copy(
-                        value = addNumbers(
-                            inputState.value.value!!, number
+                    }
+                )
+                2 -> thirdInputState.value = thirdInputState.value.copy(
+                    value = if (inputState.value.active!!) {
+                        addNumbers(inputState.value.value!!, number)
+                    } else {
+                        calculateValue(
+                            inputState.value.calculateToUSD!!,
+                            valueOfActiveInput,
+                            calculateToUsdOfActiveInput!!
                         )
-                    )
-                }
+                    }
+                )
             }
-            // TODO here make the rest if inputs calculate their value according to currency rate
         }
+    }
+
+
+    fun changeCurrency(code: String) {
+
+        when (currenciesChangeMenuOpenedFrom.value) {
+            0 -> firstInputState.value = firstInputState.value.copy(
+                currency = code, calculateToUSD = currenciesData.value?.data!![code]?.value
+            )
+            1 -> secondInputState.value = secondInputState.value.copy(
+                currency = code, calculateToUSD = currenciesData.value?.data!![code]?.value
+            )
+            2 -> thirdInputState.value = thirdInputState.value.copy(
+                currency = code, calculateToUSD = currenciesData.value?.data!![code]?.value
+            )
+        }
+
+
     }
 
     fun clearInputs() {
@@ -94,34 +149,79 @@ class HomeScreenViewModel : ViewModel() {
     }
 
     fun backSpace() {
+
+        val valueOfActiveInput = deleteLast(listOfInputs[indexOfActive.value!!].value.value!!)
+
+        val calculateToUsdOfActiveInput = listOfInputs[indexOfActive.value!!].value.calculateToUSD
+
         for ((index, inputState) in listOfInputs.withIndex()) {
-            if (inputState.value.active!!) {
-                when (index) {
-                    0 -> firstInputState.value =
-                        firstInputState.value.copy(value = deleteLast(inputState.value.value!!))
-                    1 -> secondInputState.value =
-                        secondInputState.value.copy(value = deleteLast(inputState.value.value!!))
-                    2 -> thirdInputState.value =
-                        thirdInputState.value.copy(value = deleteLast(inputState.value.value!!))
-                }
+            when (index) {
+                0 -> firstInputState.value =
+                    firstInputState.value.copy(
+                        value = if (inputState.value.active!!) {
+                            deleteLast(inputState.value.value!!)
+                        } else {
+                            calculateValue(
+                                inputState.value.calculateToUSD!!,
+                                valueOfActiveInput,
+                                calculateToUsdOfActiveInput!!
+                            )
+                        }
+                    )
+
+                1 -> secondInputState.value =
+                    secondInputState.value.copy(
+                        value = if (inputState.value.active!!) {
+                            deleteLast(inputState.value.value!!)
+                        } else {
+                            calculateValue(
+                                inputState.value.calculateToUSD!!,
+                                valueOfActiveInput,
+                                calculateToUsdOfActiveInput!!
+                            )
+                        }
+                    )
+                2 -> thirdInputState.value =
+                    thirdInputState.value.copy(
+                        value = if (inputState.value.active!!) {
+                            deleteLast(inputState.value.value!!)
+                        } else {
+                            calculateValue(
+                                inputState.value.calculateToUSD!!,
+                                valueOfActiveInput,
+                                calculateToUsdOfActiveInput!!
+                            )
+                        }
+                    )
             }
+
         }
     }
 
     fun loadData() {
+        // TODO Check if user runs for the first time, if true, then start with base values of USD, GBP, EUR, if false then load from storage
+
         infoReference.get().addOnSuccessListener { infoData ->
             val j = infoData.toObject<CurrenciesInfo>()
             currenciesInfo.value = j
             dataReference.get().addOnSuccessListener { data ->
                 val d = data.toObject<CurrenciesData>()
                 currenciesData.value = d
-                dataLoaded.value = currenciesInfo.value != null && currenciesData.value != null
-
 
                 listForChangeCurrency = currenciesInfo.value?.data!!.map { (key, value) ->
                     listOf(key, value.name)
+
                 }.sortedBy { it[0] }
 
+                // TODO temporary
+                val calc = currenciesData.value?.data?.get("USD")?.value
+                indexOfActive.value = 0
+                firstInputState.value = MInputState("USD", true, "1", calc)
+                secondInputState.value = MInputState("USD", false, "1", calc)
+                thirdInputState.value = MInputState("USD", false, "1", calc)
+
+
+                dataLoaded.value = currenciesInfo.value != null && currenciesData.value != null
                 println(currenciesInfo.value)
                 println(currenciesData.value)
             }.addOnFailureListener {

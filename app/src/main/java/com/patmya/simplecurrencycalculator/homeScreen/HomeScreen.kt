@@ -66,6 +66,9 @@ fun HomeScreen(viewModel: HomeScreenViewModel = viewModel()) {
     }
 }
 
+val preGeneratedCurrencyChange: @Composable (viewModel: HomeScreenViewModel, onExit: () -> Unit) -> Unit = { viewModel, onExit ->
+    CurrencyChange(viewModel = viewModel, onExit = { onExit() })
+}
 
 @Composable
 fun HomeScreenMainView(viewModel: HomeScreenViewModel) {
@@ -86,14 +89,23 @@ fun HomeScreenMainView(viewModel: HomeScreenViewModel) {
                     .padding(horizontal = 20.dp)
             ) {
                 CurrencyInput(0.33f, state = viewModel.firstInputState, onClick = {
-                    viewModel.focusInput(1)
-                }, onChangeCurrency = { showCurrencyChange.value = true })
+                    viewModel.focusInput(0)
+                }, onChangeCurrency = {
+                    showCurrencyChange.value = true
+                    viewModel.currenciesChangeMenuOpenedFrom.value = 0
+                })
                 CurrencyInput(0.5f, state = viewModel.secondInputState, onClick = {
-                    viewModel.focusInput(2)
-                }, onChangeCurrency = { showCurrencyChange.value = true })
+                    viewModel.focusInput(1)
+                }, onChangeCurrency = {
+                    showCurrencyChange.value = true
+                    viewModel.currenciesChangeMenuOpenedFrom.value = 1
+                })
                 CurrencyInput(state = viewModel.thirdInputState, onClick = {
-                    viewModel.focusInput(3)
-                }, onChangeCurrency = { showCurrencyChange.value = true })
+                    viewModel.focusInput(2)
+                }, onChangeCurrency = {
+                    showCurrencyChange.value = true
+                    viewModel.currenciesChangeMenuOpenedFrom.value = 2
+                })
             }
             Column(
                 modifier = Modifier.fillMaxSize(),
@@ -105,8 +117,13 @@ fun HomeScreenMainView(viewModel: HomeScreenViewModel) {
             }
         }
         if (showCurrencyChange.value) {
+/*            preGeneratedCurrencyChange(viewModel){
+                showCurrencyChange.value = false
+                viewModel.currenciesChangeMenuOpenedFrom.value = 0
+            }*/
             CurrencyChange(viewModel) {
                 showCurrencyChange.value = false
+                viewModel.currenciesChangeMenuOpenedFrom.value = 0
             }
         }
     }
@@ -149,7 +166,9 @@ fun CurrencyChange(viewModel: HomeScreenViewModel, onExit: () -> Unit) {
                         .fillMaxHeight(0.9f)
                         .background(Color.Black)
                 ) {
-                    CurrenciesColumn(viewModel)
+                    CurrenciesColumn(viewModel){
+                        animationState.targetState = false
+                    }
                 }
                 Card(modifier = Modifier
                     .padding(top = 15.dp)
@@ -170,11 +189,14 @@ fun CurrencyChange(viewModel: HomeScreenViewModel, onExit: () -> Unit) {
 }
 
 @Composable
-fun CurrenciesColumn(viewModel: HomeScreenViewModel) {
+fun CurrenciesColumn(viewModel: HomeScreenViewModel, onClose: () -> Unit) {
 
     Column(modifier = Modifier.verticalScroll(rememberScrollState())) {
         for (i in viewModel.listForChangeCurrency) {
-            CurrencyChangeLabel(code = i[0]!!, title = i[1]!!, onClick = { TODO() })
+            CurrencyChangeLabel(code = i[0]!!, title = i[1]!!, onClick = {
+                viewModel.changeCurrency(i[0]!!)
+                onClose()
+            })
         }
     }
 }
@@ -203,7 +225,7 @@ fun CurrencyInput(
             Row(modifier = Modifier.clickable(
                 interactionSource = interactionSource, indication = null
             ) { onChangeCurrency() }) {
-                Text(text = "DKK", fontSize = 22.sp) // TODO temporary
+                Text(text = state.value.currency!!, fontSize = 22.sp) // TODO temporary
                 Icon(
                     imageVector = Icons.Default.ArrowDropDown,
                     contentDescription = "arrow down"
