@@ -17,6 +17,8 @@ import kotlinx.coroutines.withContext
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.Response
+import java.math.BigDecimal
+import java.math.RoundingMode
 
 class HomeScreenViewModel : ViewModel() {
 
@@ -48,6 +50,9 @@ class HomeScreenViewModel : ViewModel() {
 
     //TODO reduce boilerplate code, add full name variable to inputState class blueprint, test
 
+    // TODO add full name to input properties and make it change on currency change
+
+
     private fun addNumbers(currentNumber: String, adding: Char): String {
         //TODO change reaction on '.'
         return if (currentNumber == "0") {
@@ -68,8 +73,10 @@ class HomeScreenViewModel : ViewModel() {
         valueOfActiveInput: String,
         calculateToUsdOfActiveInput: Double,
     ): String {
-        //TODO TEST
-        return (valueOfActiveInput.toDouble() * calculateToUsdOfActiveInput * calculateToUsdOfBaseInput).toString()
+
+        val number = valueOfActiveInput.toDouble() * calculateToUsdOfActiveInput * calculateToUsdOfBaseInput
+
+        return BigDecimal(number).setScale(4, RoundingMode.HALF_UP).toString()
     }
 
     fun focusInput(position: Int) {
@@ -127,19 +134,52 @@ class HomeScreenViewModel : ViewModel() {
 
     fun changeCurrency(code: String) {
 
+        val calculateToUsdValue = currenciesData.value?.data!![code]?.value
+
         when (currenciesChangeMenuOpenedFrom.value) {
             0 -> firstInputState.value = firstInputState.value.copy(
-                currency = code, calculateToUSD = currenciesData.value?.data!![code]?.value
+                currency = code, calculateToUSD = calculateToUsdValue,
             )
             1 -> secondInputState.value = secondInputState.value.copy(
-                currency = code, calculateToUSD = currenciesData.value?.data!![code]?.value
+                currency = code, calculateToUSD = calculateToUsdValue,
             )
             2 -> thirdInputState.value = thirdInputState.value.copy(
-                currency = code, calculateToUSD = currenciesData.value?.data!![code]?.value
+                currency = code, calculateToUSD = calculateToUsdValue,
             )
         }
 
+        val valueOfActiveInput = listOfInputs[indexOfActive.value!!].value.value!!
 
+        val calculateToUsdOfActiveInput = listOfInputs[indexOfActive.value!!].value.calculateToUSD!!
+
+        for ((index, state) in listOfInputs.withIndex()) {
+
+            if (indexOfActive.value != index) {
+                when (index) {
+                    0 -> firstInputState.value = firstInputState.value.copy(
+                        value = calculateValue(
+                            state.value.calculateToUSD!!,
+                            valueOfActiveInput,
+                            calculateToUsdOfActiveInput
+                        )
+                    )
+                    1 -> secondInputState.value = secondInputState.value.copy(
+                        value = calculateValue(
+                            state.value.calculateToUSD!!,
+                            valueOfActiveInput,
+                            calculateToUsdOfActiveInput
+                        )
+                    )
+                    2 -> thirdInputState.value = thirdInputState.value.copy(
+                        value = calculateValue(
+                            state.value.calculateToUSD!!,
+                            valueOfActiveInput,
+                            calculateToUsdOfActiveInput
+                        )
+                    )
+                }
+            }
+        }
     }
 
     fun clearInputs() {
