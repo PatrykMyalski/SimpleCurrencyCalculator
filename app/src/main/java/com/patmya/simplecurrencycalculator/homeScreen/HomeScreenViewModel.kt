@@ -7,9 +7,10 @@ import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.firestore.ktx.toObject
 import com.google.firebase.ktx.Firebase
 import com.google.gson.Gson
-import com.patmya.simplecurrencycalculator.MInputState
+import com.patmya.simplecurrencycalculator.model.MInputState
 import com.patmya.simplecurrencycalculator.model.CurrenciesInfo
 import com.patmya.simplecurrencycalculator.model.CurrenciesData
+import com.patmya.simplecurrencycalculator.room.InputD
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -23,9 +24,13 @@ import java.math.RoundingMode
 class HomeScreenViewModel : ViewModel() {
 
 
-    private val db = Firebase.firestore
-    private val infoReference = db.collection("info").document("GyyBIwmt8fDfTBAipZ5h")
-    private val dataReference = db.collection("data").document("6uf5lDeR8fpW0TOntk3V")
+    //val context = Context()
+
+    private val dbFireStore = Firebase.firestore
+    private val infoReference = dbFireStore.collection("info").document("GyyBIwmt8fDfTBAipZ5h")
+    private val dataReference = dbFireStore.collection("data").document("6uf5lDeR8fpW0TOntk3V")
+
+    //private val dbRoom = Room.databaseBuilder(context, AppDatabase::class.java, "my-db").build()
 
 
     val firstInputState = mutableStateOf(MInputState())
@@ -49,9 +54,6 @@ class HomeScreenViewModel : ViewModel() {
     private val listOfInputs = arrayListOf(firstInputState, secondInputState, thirdInputState)
 
     //TODO reduce boilerplate code, add full name variable to inputState class blueprint, test
-
-    // TODO add full name to input properties and make it change on currency change
-
 
     private fun addNumbers(currentNumber: String, adding: Char): String {
         //TODO change reaction on '.'
@@ -135,22 +137,24 @@ class HomeScreenViewModel : ViewModel() {
     fun changeCurrency(code: String) {
 
         val calculateToUsdValue = currenciesData.value?.data!![code]?.value
+        val newCurrency = currenciesInfo.value!!.data?.get(code)!!
 
         when (currenciesChangeMenuOpenedFrom.value) {
             0 -> firstInputState.value = firstInputState.value.copy(
-                currency = code, calculateToUSD = calculateToUsdValue,
+                currency = code, calculateToUSD = calculateToUsdValue, fullTitle = newCurrency.name
             )
             1 -> secondInputState.value = secondInputState.value.copy(
-                currency = code, calculateToUSD = calculateToUsdValue,
+                currency = code, calculateToUSD = calculateToUsdValue, fullTitle = newCurrency.name
             )
             2 -> thirdInputState.value = thirdInputState.value.copy(
-                currency = code, calculateToUSD = calculateToUsdValue,
+                currency = code, calculateToUSD = calculateToUsdValue, fullTitle = newCurrency.name
             )
         }
 
         val valueOfActiveInput = listOfInputs[indexOfActive.value!!].value.value!!
 
         val calculateToUsdOfActiveInput = listOfInputs[indexOfActive.value!!].value.calculateToUSD!!
+
 
         for ((index, state) in listOfInputs.withIndex()) {
 
@@ -238,8 +242,7 @@ class HomeScreenViewModel : ViewModel() {
         }
     }
 
-    fun loadData() {
-        // TODO Check if user runs for the first time, if true, then start with base values of USD, GBP, EUR, if false then load from storage
+    fun loadData(inputData: List<InputD>){
 
         infoReference.get().addOnSuccessListener { infoData ->
             val j = infoData.toObject<CurrenciesInfo>()
@@ -253,17 +256,17 @@ class HomeScreenViewModel : ViewModel() {
 
                 }.sortedBy { it[0] }
 
-                // TODO temporary
-                val calc = currenciesData.value?.data?.get("USD")?.value
-                indexOfActive.value = 0
-                firstInputState.value = MInputState("USD", true, "1", calc)
-                secondInputState.value = MInputState("USD", false, "1", calc)
-                thirdInputState.value = MInputState("USD", false, "1", calc)
+                inputData.forEachIndexed { index, inputD ->
+                    val inputValues = MInputState(currency = inputD.currency, active = inputD.active, value = inputD.value, calculateToUSD = inputD.calculateToUSD, fullTitle = inputD.fullTitle)
+                    when (index){
+                        0 -> firstInputState.value = inputValues
+                        1 -> secondInputState.value = inputValues
+                        2 -> thirdInputState.value = inputValues
+                    }
+                }
 
+                dataLoaded.value = currenciesInfo.value != null && currenciesData.value != null && listOfInputs.isNotEmpty()
 
-                dataLoaded.value = currenciesInfo.value != null && currenciesData.value != null
-                println(currenciesInfo.value)
-                println(currenciesData.value)
             }.addOnFailureListener {
                 println(it)
             }

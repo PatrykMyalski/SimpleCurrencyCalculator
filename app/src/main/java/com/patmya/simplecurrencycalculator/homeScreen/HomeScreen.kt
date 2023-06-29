@@ -20,18 +20,18 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.patmya.simplecurrencycalculator.MInputState
+import com.patmya.simplecurrencycalculator.model.MInputState
+import com.patmya.simplecurrencycalculator.room.InputD
 
 
-// On choosing currency use this animation doc: https://developer.android.com/jetpack/compose/animation/composables-modifiers#animatedvisibility
 
 @Composable
-fun HomeScreen(viewModel: HomeScreenViewModel = viewModel()) {
+fun HomeScreen(inputData: List<InputD>, viewModel: HomeScreenViewModel = viewModel()) {
 
     val scaffoldState = rememberScaffoldState()
 
     if (!viewModel.dataLoaded.value) {
-        viewModel.loadData()
+        viewModel.loadData(inputData)
     }
 
 
@@ -225,7 +225,7 @@ fun CurrencyInput(
             Row(modifier = Modifier.clickable(
                 interactionSource = interactionSource, indication = null
             ) { onChangeCurrency() }) {
-                Text(text = state.value.currency!!, fontSize = 22.sp) // TODO temporary
+                Text(text = state.value.currency!!, fontSize = 22.sp)
                 Icon(
                     imageVector = Icons.Default.ArrowDropDown,
                     contentDescription = "arrow down"
@@ -244,8 +244,8 @@ fun CurrencyInput(
                 fontSize = 27.sp,
                 textAlign = TextAlign.End,
                 color = if (state.value.active!!) MaterialTheme.colors.secondary else MaterialTheme.colors.onPrimary
-            ) //TODO temporary
-            Text(text = "Danish krone", fontSize = 12.sp)
+            )
+            Text(text = state.value.fullTitle!!, fontSize = 12.sp)
         }
     }
 }
