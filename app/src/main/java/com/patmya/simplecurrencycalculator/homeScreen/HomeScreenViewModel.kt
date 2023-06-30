@@ -88,7 +88,7 @@ class HomeScreenViewModel : ViewModel() {
         thirdInputState.value = thirdInputState.value.copy(active = position == 2)
     }
 
-    fun changeInput(number: Char) {
+    fun changeInput(number: Char, onUpdate: (List<InputD>) -> Unit) {
         //TODO TEST
         val valueOfActiveInput = listOfInputs[indexOfActive.value!!].value.value + number
 
@@ -131,10 +131,11 @@ class HomeScreenViewModel : ViewModel() {
                 )
             }
         }
+        onUpdate(updateRoom())
     }
 
 
-    fun changeCurrency(code: String) {
+    fun changeCurrency(code: String, onUpdate: (List<InputD>) -> Unit) {
 
         val calculateToUsdValue = currenciesData.value?.data!![code]?.value
         val newCurrency = currenciesInfo.value!!.data?.get(code)!!
@@ -184,6 +185,22 @@ class HomeScreenViewModel : ViewModel() {
                 }
             }
         }
+
+        onUpdate(updateRoom())
+
+    }
+
+    private fun updateRoom(): List<InputD>{
+        val listToUpdate = listOfInputs.mapIndexed{ index, mutableState ->
+        val state = mutableState.value
+            when (index) {
+                0 -> InputD(0, state.currency, true, state.value, state.calculateToUSD, state.fullTitle)
+                1 -> InputD(1, state.currency, false, state.value, state.calculateToUSD, state.fullTitle)
+                2 -> InputD(2, state.currency, false, state.value, state.calculateToUSD, state.fullTitle)
+                else -> throw Exception("Unexpected input state")
+            }
+        }
+        return listToUpdate
     }
 
     fun clearInputs() {

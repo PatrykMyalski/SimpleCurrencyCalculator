@@ -43,6 +43,10 @@ class MainActivity : ComponentActivity() {
             } else inputsState.value = this
         }
 
+        fun onUpdate(list: List<InputD>){
+            inputsDao.updateAll(list)
+        }
+
         super.onCreate(savedInstanceState)
         setContent {
             SimpleCurrencyCalculatorTheme {
@@ -53,7 +57,9 @@ class MainActivity : ComponentActivity() {
                     if (inputsState.value.isEmpty()) {
                         ProgressIndicator()
                     } else {
-                        HomeScreen(inputsState.value)
+                        HomeScreen(inputsState.value){list ->
+                            onUpdate(list)
+                        }
                     }
 
                 }

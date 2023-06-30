@@ -26,7 +26,7 @@ import com.patmya.simplecurrencycalculator.room.InputD
 
 
 @Composable
-fun HomeScreen(inputData: List<InputD>, viewModel: HomeScreenViewModel = viewModel()) {
+fun HomeScreen(inputData: List<InputD>, viewModel: HomeScreenViewModel = viewModel(), onUpdate: (List<InputD>) -> Unit) {
 
     val scaffoldState = rememberScaffoldState()
 
@@ -60,18 +60,20 @@ fun HomeScreen(inputData: List<InputD>, viewModel: HomeScreenViewModel = viewMod
                 verticalArrangement = Arrangement.Center,
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                HomeScreenMainView(viewModel = viewModel)
+                HomeScreenMainView(viewModel = viewModel){list ->
+                    onUpdate(list)
+                }
             }
         }
     }
 }
 
-val preGeneratedCurrencyChange: @Composable (viewModel: HomeScreenViewModel, onExit: () -> Unit) -> Unit = { viewModel, onExit ->
+/*val preGeneratedCurrencyChange: @Composable (viewModel: HomeScreenViewModel, onExit: () -> Unit) -> Unit = { viewModel, onExit ->
     CurrencyChange(viewModel = viewModel, onExit = { onExit() })
-}
+}*/
 
 @Composable
-fun HomeScreenMainView(viewModel: HomeScreenViewModel) {
+fun HomeScreenMainView(viewModel: HomeScreenViewModel, onUpdate: (List<InputD>) -> Unit) {
 
     // TODO only for development
     //viewModel.transformData()
@@ -111,7 +113,10 @@ fun HomeScreenMainView(viewModel: HomeScreenViewModel) {
                 modifier = Modifier.fillMaxSize(),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                NumbersNest(onNumberInput = { viewModel.changeInput(it) },
+                NumbersNest(onNumberInput = { viewModel.changeInput(it){list ->
+                    onUpdate(list)
+                }
+                                            },
                     onClear = { viewModel.clearInputs() },
                     onBackSpace = { viewModel.backSpace() })
             }
@@ -121,16 +126,18 @@ fun HomeScreenMainView(viewModel: HomeScreenViewModel) {
                 showCurrencyChange.value = false
                 viewModel.currenciesChangeMenuOpenedFrom.value = 0
             }*/
-            CurrencyChange(viewModel) {
+            CurrencyChange(viewModel, onExit = {
                 showCurrencyChange.value = false
                 viewModel.currenciesChangeMenuOpenedFrom.value = 0
-            }
+            }, onUpdate = {list ->
+                onUpdate(list)
+            })
         }
     }
 }
 
 @Composable
-fun CurrencyChange(viewModel: HomeScreenViewModel, onExit: () -> Unit) {
+fun CurrencyChange(viewModel: HomeScreenViewModel, onExit: () -> Unit, onUpdate: (List<InputD>) -> Unit) {
 
 
     val interactionSource = MutableInteractionSource()
@@ -166,8 +173,8 @@ fun CurrencyChange(viewModel: HomeScreenViewModel, onExit: () -> Unit) {
                         .fillMaxHeight(0.9f)
                         .background(Color.Black)
                 ) {
-                    CurrenciesColumn(viewModel){
-                        animationState.targetState = false
+                    CurrenciesColumn(viewModel, onClose = {animationState.targetState = false}){list ->
+                        onUpdate(list)
                     }
                 }
                 Card(modifier = Modifier
@@ -189,12 +196,14 @@ fun CurrencyChange(viewModel: HomeScreenViewModel, onExit: () -> Unit) {
 }
 
 @Composable
-fun CurrenciesColumn(viewModel: HomeScreenViewModel, onClose: () -> Unit) {
+fun CurrenciesColumn(viewModel: HomeScreenViewModel, onClose: () -> Unit, onUpdate: (List<InputD>) -> Unit) {
 
     Column(modifier = Modifier.verticalScroll(rememberScrollState())) {
         for (i in viewModel.listForChangeCurrency) {
             CurrencyChangeLabel(code = i[0]!!, title = i[1]!!, onClick = {
-                viewModel.changeCurrency(i[0]!!)
+                viewModel.changeCurrency(i[0]!!){list ->
+                    onUpdate(list)
+                }
                 onClose()
             })
         }
