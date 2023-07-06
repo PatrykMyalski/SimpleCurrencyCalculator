@@ -1,11 +1,15 @@
 package com.patmya.simplecurrencycalculator.homeScreen
 
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.*
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.MutableState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.StrokeCap
@@ -15,6 +19,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.patmya.simplecurrencycalculator.R
+import com.patmya.simplecurrencycalculator.model.MInputState
 
 
 @Composable
@@ -47,8 +52,8 @@ fun CurrencyChangeLabel(code: String, title: String, onClick: (String) -> Unit) 
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Text(text = code, fontSize = 20.sp)
             Text(text = title, fontSize = 20.sp)
+            Text(text = code, fontSize = 20.sp, fontWeight = FontWeight.Bold)
         }
     }
 }
@@ -73,8 +78,7 @@ fun NumbersNest(
     val cardBGColor = MaterialTheme.colors.primaryVariant
 
     Text(
-        // TODO
-        text = "Exchange rates are provided by tralalalalalla",
+        text = "Exchange rates are provided by currencyapi.com",
         color = MaterialTheme.colors.primaryVariant
     )
     Row(modifier = Modifier.fillMaxSize()) {
@@ -165,5 +169,54 @@ fun KeyboardRow(numbers: String, onClick: (number: Char) -> Unit) {
             }
         }
 
+    }
+}
+
+@Composable
+fun CurrencyInput(
+    height: Float = 1f,
+    state: MutableState<MInputState>,
+    onClick: () -> Unit,
+    onChangeCurrency: () -> Unit,
+) {
+
+    val interactionSource = MutableInteractionSource()
+
+    Row(
+        modifier = Modifier
+            .fillMaxHeight(height)
+            .fillMaxWidth(),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.SpaceBetween
+    ) {
+        Row(
+            modifier = Modifier.fillMaxWidth(0.2f),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Row(modifier = Modifier.clickable(
+                interactionSource = interactionSource, indication = null
+            ) { onChangeCurrency() }) {
+                Text(text = state.value.currency!!, fontSize = 22.sp)
+                Icon(
+                    imageVector = Icons.Default.ArrowDropDown,
+                    contentDescription = "arrow down"
+                )
+            }
+        }
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .clickable(interactionSource = interactionSource, indication = null) {
+                    onClick()
+                }, horizontalAlignment = Alignment.End
+        ) {
+            Text(
+                text = state.value.value.toString(),
+                fontSize = 27.sp,
+                textAlign = TextAlign.End,
+                color = if (state.value.active!!) MaterialTheme.colors.secondary else MaterialTheme.colors.onPrimary
+            )
+            Text(text = state.value.fullTitle!!, fontSize = 12.sp)
+        }
     }
 }

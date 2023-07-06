@@ -8,19 +8,19 @@ import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.*
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.patmya.simplecurrencycalculator.model.MInputState
 import com.patmya.simplecurrencycalculator.room.InputD
 
 
@@ -171,8 +171,11 @@ fun CurrencyChange(viewModel: HomeScreenViewModel, onExit: () -> Unit, onUpdate:
                 Column(
                     modifier = Modifier
                         .fillMaxHeight(0.9f)
-                        .background(Color.Black)
+                        .background(MaterialTheme.colors.background)
                 ) {
+                    SearchBar{
+                        viewModel.searchCurrency(it)
+                    }
                     CurrenciesColumn(viewModel, onClose = {animationState.targetState = false}){list ->
                         onUpdate(list)
                     }
@@ -196,6 +199,34 @@ fun CurrencyChange(viewModel: HomeScreenViewModel, onExit: () -> Unit, onUpdate:
 }
 
 @Composable
+fun SearchBar(onSearch: (String) -> Unit) {
+
+    val primaryVariant = MaterialTheme.colors.primaryVariant
+    val onPrimary = MaterialTheme.colors.onPrimary
+    val backgroundColor = MaterialTheme.colors.background
+
+    var textState by remember {mutableStateOf("")}
+    OutlinedTextField(value = textState, onValueChange = {textState = it}, modifier = Modifier
+        .fillMaxWidth()
+        .padding(horizontal = 10.dp), shape = RoundedCornerShape(5.dp),
+        placeholder = { Text(text = "Currency code or name")},
+        keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
+        keyboardActions = KeyboardActions(
+            onSearch = {
+                onSearch(textState.trim())
+            }
+
+        ),
+        colors = TextFieldDefaults.outlinedTextFieldColors(
+            textColor = onPrimary,
+            backgroundColor = backgroundColor,
+            cursorColor = onPrimary,
+            focusedBorderColor = onPrimary,
+            unfocusedBorderColor = primaryVariant,
+            placeholderColor = primaryVariant))
+}
+
+@Composable
 fun CurrenciesColumn(viewModel: HomeScreenViewModel, onClose: () -> Unit, onUpdate: (List<InputD>) -> Unit) {
 
     Column(modifier = Modifier.verticalScroll(rememberScrollState())) {
@@ -210,53 +241,6 @@ fun CurrenciesColumn(viewModel: HomeScreenViewModel, onClose: () -> Unit, onUpda
     }
 }
 
-@Composable
-fun CurrencyInput(
-    height: Float = 1f,
-    state: MutableState<MInputState>,
-    onClick: () -> Unit,
-    onChangeCurrency: () -> Unit,
-) {
 
-    val interactionSource = MutableInteractionSource()
-
-    Row(
-        modifier = Modifier
-            .fillMaxHeight(height)
-            .fillMaxWidth(),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.SpaceBetween
-    ) {
-        Row(
-            modifier = Modifier.fillMaxWidth(0.2f),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Row(modifier = Modifier.clickable(
-                interactionSource = interactionSource, indication = null
-            ) { onChangeCurrency() }) {
-                Text(text = state.value.currency!!, fontSize = 22.sp)
-                Icon(
-                    imageVector = Icons.Default.ArrowDropDown,
-                    contentDescription = "arrow down"
-                )
-            }
-        }
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .clickable(interactionSource = interactionSource, indication = null) {
-                    onClick()
-                }, horizontalAlignment = Alignment.End
-        ) {
-            Text(
-                text = state.value.value.toString(),
-                fontSize = 27.sp,
-                textAlign = TextAlign.End,
-                color = if (state.value.active!!) MaterialTheme.colors.secondary else MaterialTheme.colors.onPrimary
-            )
-            Text(text = state.value.fullTitle!!, fontSize = 12.sp)
-        }
-    }
-}
 
 
