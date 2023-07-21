@@ -63,7 +63,7 @@ class HomeScreenViewModel : ViewModel() {
         )
     }
 
-    private fun checkIfNumberFormatException (number: String, adding: Char): Boolean{
+    private fun checkIfNumberFormatException(number: String, adding: Char): Boolean {
         return '.' in number && adding == '.'
     }
 
@@ -73,18 +73,40 @@ class HomeScreenViewModel : ViewModel() {
         calculateToUsdOfActiveInput: Double,
     ): String {
 
-        val number = valueOfActiveInput.toDouble()  * calculateToUsdOfBaseInput / calculateToUsdOfActiveInput
+        val number =
+            valueOfActiveInput.toDouble() * calculateToUsdOfBaseInput / calculateToUsdOfActiveInput
 
         return BigDecimal(number).setScale(4, RoundingMode.HALF_UP).toString()
     }
 
-    private fun updateRoom(): List<InputD>{
-        val listToUpdate = listOfInputs.mapIndexed{ index, mutableState ->
+    private fun updateRoom(): List<InputD> {
+        val listToUpdate = listOfInputs.mapIndexed { index, mutableState ->
             val state = mutableState.value
             when (index) {
-                0 -> InputD(0, state.currency, true, state.value, state.calculateToUSD, state.fullTitle)
-                1 -> InputD(1, state.currency, false, state.value, state.calculateToUSD, state.fullTitle)
-                2 -> InputD(2, state.currency, false, state.value, state.calculateToUSD, state.fullTitle)
+                0 -> InputD(
+                    0,
+                    state.currency,
+                    true,
+                    state.value,
+                    state.calculateToUSD,
+                    state.fullTitle
+                )
+                1 -> InputD(
+                    1,
+                    state.currency,
+                    false,
+                    state.value,
+                    state.calculateToUSD,
+                    state.fullTitle
+                )
+                2 -> InputD(
+                    2,
+                    state.currency,
+                    false,
+                    state.value,
+                    state.calculateToUSD,
+                    state.fullTitle
+                )
                 else -> throw Exception("Unexpected input state")
             }
         }
@@ -101,7 +123,11 @@ class HomeScreenViewModel : ViewModel() {
     fun changeInput(number: Char, onUpdate: (List<InputD>) -> Unit) {
         //TODO TEST
 
-        if (checkIfNumberFormatException(listOfInputs[indexOfActive.value!!].value.value!!, number)) return
+        if (checkIfNumberFormatException(
+                listOfInputs[indexOfActive.value!!].value.value!!,
+                number
+            )
+        ) return
 
         val valueOfActiveInput = listOfInputs[indexOfActive.value!!].value.value + number
 
@@ -147,45 +173,50 @@ class HomeScreenViewModel : ViewModel() {
         onUpdate(updateRoom())
     }
 
-    fun searchCurrency(input: String){
-
-        // TODO for now you are updating list for change currency, make it update on component
+    fun searchCurrency(input: String, onDone: (MutableList<List<String?>>) -> Unit) {
 
         val info = currenciesInfo.value?.data!!
+
+        val listForSearch = mutableListOf<List<String?>>()
 
         when (input) {
             "avax" -> {
                 val i = info["AVAX"]!!
-                listForChangeCurrency = mutableListOf(listOf(i.code, i.name))
+                onDone(mutableListOf(listOf(i.code, i.name)))
+
             }
             "matic" -> {
                 val i = info["MATIC"]!!
-                listForChangeCurrency = mutableListOf(listOf(i.code, i.name))
+                onDone(mutableListOf(listOf(i.code, i.name)))
             }
             else -> {
 
-                listForChangeCurrency = mutableListOf()
-                info.forEach{
-                    val code = it.key.lowercase()
-                    val title = it.value.name!!.lowercase()
+                listForChangeCurrency.forEach {
 
-                    if (input.length == 3){
-                        if (code == input){
-                            println("You found $title")
-                            listForChangeCurrency = mutableListOf(listOf(code, title))
-                        } else {
-                            println("not found")
+                    val code = it[0]!!
+                    val title = it[1]!!
+                    val codeLowercase = code.lowercase()
+                    val titleLowercase = title.lowercase()
+
+                    val ifCorrectToUpdate = listOf(code, title)
+
+                    if (input.length == 3) {
+                        if (codeLowercase == input) {
+                            listForSearch += ifCorrectToUpdate
                         }
                     } else {
-                        if (input in title) {
-                            listForChangeCurrency += mutableListOf(listOf(code, title))
+                        if (input in titleLowercase) {
+                            listForSearch += ifCorrectToUpdate
                         }
                     }
+
                 }
+                if (listForSearch.isEmpty()) {
+                    onDone(mutableListOf(listOf("", "Not Found")))
+                } else onDone(listForSearch)
             }
         }
     }
-
 
 
     fun changeCurrency(code: String, onUpdate: (List<InputD>) -> Unit) {
@@ -195,19 +226,26 @@ class HomeScreenViewModel : ViewModel() {
 
         when (currenciesChangeMenuOpenedFrom.value) {
             0 -> firstInputState.value = firstInputState.value.copy(
-                currency = code, calculateToUSD = calculateToUsdValue, fullTitle = newCurrency.name
+                currency = code,
+                calculateToUSD = calculateToUsdValue,
+                fullTitle = newCurrency.name
             )
             1 -> secondInputState.value = secondInputState.value.copy(
-                currency = code, calculateToUSD = calculateToUsdValue, fullTitle = newCurrency.name
+                currency = code,
+                calculateToUSD = calculateToUsdValue,
+                fullTitle = newCurrency.name
             )
             2 -> thirdInputState.value = thirdInputState.value.copy(
-                currency = code, calculateToUSD = calculateToUsdValue, fullTitle = newCurrency.name
+                currency = code,
+                calculateToUSD = calculateToUsdValue,
+                fullTitle = newCurrency.name
             )
         }
 
         val valueOfActiveInput = listOfInputs[indexOfActive.value!!].value.value!!
 
-        val calculateToUsdOfActiveInput = listOfInputs[indexOfActive.value!!].value.calculateToUSD!!
+        val calculateToUsdOfActiveInput =
+            listOfInputs[indexOfActive.value!!].value.calculateToUSD!!
 
 
         for ((index, state) in listOfInputs.withIndex()) {
@@ -241,6 +279,7 @@ class HomeScreenViewModel : ViewModel() {
         onUpdate(updateRoom())
     }
 
+
     fun clearInputs() {
         firstInputState.value = firstInputState.value.copy(value = "0")
         secondInputState.value = secondInputState.value.copy(value = "0")
@@ -251,7 +290,8 @@ class HomeScreenViewModel : ViewModel() {
 
         val valueOfActiveInput = deleteLast(listOfInputs[indexOfActive.value!!].value.value!!)
 
-        val calculateToUsdOfActiveInput = listOfInputs[indexOfActive.value!!].value.calculateToUSD
+        val calculateToUsdOfActiveInput =
+            listOfInputs[indexOfActive.value!!].value.calculateToUSD
 
         for ((index, inputState) in listOfInputs.withIndex()) {
             when (index) {
@@ -297,7 +337,8 @@ class HomeScreenViewModel : ViewModel() {
         }
     }
 
-    fun loadData(inputData: List<InputD>){
+
+    fun loadData(inputData: List<InputD>) {
 
         infoReference.get().addOnSuccessListener { infoData ->
             val j = infoData.toObject<CurrenciesInfo>()
@@ -313,15 +354,22 @@ class HomeScreenViewModel : ViewModel() {
 
                 inputData.forEachIndexed { index, inputD ->
                     if (inputD.active == true) indexOfActive.value = index
-                    val inputValues = MInputState(currency = inputD.currency, active = inputD.active, value = inputD.value, calculateToUSD = inputD.calculateToUSD, fullTitle = inputD.fullTitle)
-                    when (index){
+                    val inputValues = MInputState(
+                        currency = inputD.currency,
+                        active = inputD.active,
+                        value = inputD.value,
+                        calculateToUSD = inputD.calculateToUSD,
+                        fullTitle = inputD.fullTitle
+                    )
+                    when (index) {
                         0 -> firstInputState.value = inputValues
                         1 -> secondInputState.value = inputValues
                         2 -> thirdInputState.value = inputValues
                     }
                 }
 
-                dataLoaded.value = currenciesInfo.value != null && currenciesData.value != null && listOfInputs.isNotEmpty()
+                dataLoaded.value =
+                    currenciesInfo.value != null && currenciesData.value != null && listOfInputs.isNotEmpty()
 
             }.addOnFailureListener {
                 println(it)
@@ -363,7 +411,6 @@ class HomeScreenViewModel : ViewModel() {
             }
             println("done")
         }
-
     }
 }
 

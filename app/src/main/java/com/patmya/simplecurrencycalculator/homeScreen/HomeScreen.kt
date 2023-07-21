@@ -1,6 +1,7 @@
 package com.patmya.simplecurrencycalculator.homeScreen
 
 
+import android.annotation.SuppressLint
 import android.widget.Toast
 import androidx.compose.animation.*
 import androidx.compose.animation.core.MutableTransitionState
@@ -14,6 +15,8 @@ import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.*
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -26,9 +29,12 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.patmya.simplecurrencycalculator.room.InputD
 
-
 @Composable
-fun HomeScreen(inputData: List<InputD>, viewModel: HomeScreenViewModel = viewModel(), onUpdate: (List<InputD>) -> Unit) {
+fun HomeScreen(
+    inputData: List<InputD>,
+    viewModel: HomeScreenViewModel = viewModel(),
+    onUpdate: (List<InputD>) -> Unit,
+) {
 
     val scaffoldState = rememberScaffoldState()
 
@@ -62,7 +68,7 @@ fun HomeScreen(inputData: List<InputD>, viewModel: HomeScreenViewModel = viewMod
                 verticalArrangement = Arrangement.Center,
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                HomeScreenMainView(viewModel = viewModel){list ->
+                HomeScreenMainView(viewModel = viewModel) { list ->
                     onUpdate(list)
                 }
             }
@@ -115,10 +121,11 @@ fun HomeScreenMainView(viewModel: HomeScreenViewModel, onUpdate: (List<InputD>) 
                 modifier = Modifier.fillMaxSize(),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                NumbersNest(onNumberInput = { viewModel.changeInput(it){list ->
-                    onUpdate(list)
-                }
-                                            },
+                NumbersNest(onNumberInput = {
+                    viewModel.changeInput(it) { list ->
+                        onUpdate(list)
+                    }
+                },
                     onClear = { viewModel.clearInputs() },
                     onBackSpace = { viewModel.backSpace() })
             }
@@ -131,15 +138,20 @@ fun HomeScreenMainView(viewModel: HomeScreenViewModel, onUpdate: (List<InputD>) 
             CurrencyChange(viewModel, onExit = {
                 showCurrencyChange.value = false
                 viewModel.currenciesChangeMenuOpenedFrom.value = 0
-            }, onUpdate = {list ->
+            }, onUpdate = { list ->
                 onUpdate(list)
             })
         }
     }
 }
 
+@SuppressLint("UnrememberedMutableState", "MutableCollectionMutableState")
 @Composable
-fun CurrencyChange(viewModel: HomeScreenViewModel, onExit: () -> Unit, onUpdate: (List<InputD>) -> Unit) {
+fun CurrencyChange(
+    viewModel: HomeScreenViewModel,
+    onExit: () -> Unit,
+    onUpdate: (List<InputD>) -> Unit,
+) {
 
 
     val interactionSource = MutableInteractionSource()
@@ -154,6 +166,8 @@ fun CurrencyChange(viewModel: HomeScreenViewModel, onExit: () -> Unit, onUpdate:
             onExit()
         }
     }
+
+    val listOfCurrencies = mutableStateOf(viewModel.listForChangeCurrency)
 
     AnimatedVisibility(
         visibleState = animationState, enter = slideInVertically(), exit = shrinkVertically()
@@ -175,18 +189,28 @@ fun CurrencyChange(viewModel: HomeScreenViewModel, onExit: () -> Unit, onUpdate:
                         .fillMaxHeight(0.9f)
                         .background(MaterialTheme.colors.background)
                 ) {
-                    SearchBar{
-                        viewModel.searchCurrency(it)
-                    }
-                    CurrenciesColumn(viewModel, onClose = {animationState.targetState = false}){list ->
+                    SearchBar(onSearch = {
+                        viewModel.searchCurrency(it) { listToUpdate ->
+                            listOfCurrencies.value = listToUpdate
+                        }
+                    },
+                        onClear = {
+                            listOfCurrencies.value = viewModel.listForChangeCurrency
+                        })
+                    CurrenciesColumn(
+                        viewModel,
+                        list = listOfCurrencies,
+                        onClose = { animationState.targetState = false }) { list ->
                         onUpdate(list)
                     }
                 }
-                Card(modifier = Modifier
-                    .padding(top = 15.dp)
-                    .clickable { animationState.targetState = false },
+                Card(
+                    modifier = Modifier
+                        .padding(top = 15.dp)
+                        .clickable { animationState.targetState = false },
                     shape = RoundedCornerShape(10.dp),
-                    backgroundColor = MaterialTheme.colors.primary) {
+                    backgroundColor = MaterialTheme.colors.primary
+                ) {
                     Text(
                         modifier = Modifier.padding(horizontal = 10.dp, vertical = 5.dp),
                         text = "Cancel",
@@ -201,7 +225,7 @@ fun CurrencyChange(viewModel: HomeScreenViewModel, onExit: () -> Unit, onUpdate:
 }
 
 @Composable
-fun SearchBar(onSearch: (String) -> Unit) {
+fun SearchBar(onSearch: (String) -> Unit, onClear: () -> Unit) {
 
     val context = LocalContext.current
     val text = "Provide at least three characters for currency code"
@@ -212,18 +236,27 @@ fun SearchBar(onSearch: (String) -> Unit) {
     val onPrimary = MaterialTheme.colors.onPrimary
     val backgroundColor = MaterialTheme.colors.background
 
-    var textState by remember {mutableStateOf("")}
-    OutlinedTextField(value = textState, onValueChange = {textState = it}, modifier = Modifier
+    var textState by remember { mutableStateOf("") }
+    OutlinedTextField(value = textState, onValueChange = { textState = it }, modifier = Modifier
         .fillMaxWidth()
         .padding(horizontal = 10.dp), shape = RoundedCornerShape(5.dp),
-        placeholder = { Text(text = "Currency code or name")},
+        placeholder = { Text(text = "Currency code or name") },
+        trailingIcon = {
+            Icon(
+                imageVector = Icons.Default.Close,
+                contentDescription = "clear input",
+                modifier = Modifier.clickable {
+                    textState = ""
+                    onClear()
+                })
+        },
         keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
         keyboardActions = KeyboardActions(
             onSearch = {
                 val trimmedText = textState.trim().lowercase()
                 if (trimmedText.length < 3) {
                     toast.show()
-                } else onSearch(textState.trim())
+                } else onSearch(textState.trim().lowercase())
             }
 
         ),
@@ -233,16 +266,22 @@ fun SearchBar(onSearch: (String) -> Unit) {
             cursorColor = onPrimary,
             focusedBorderColor = onPrimary,
             unfocusedBorderColor = primaryVariant,
-            placeholderColor = primaryVariant))
+            placeholderColor = primaryVariant
+        ))
 }
 
 @Composable
-fun CurrenciesColumn(viewModel: HomeScreenViewModel, onClose: () -> Unit, onUpdate: (List<InputD>) -> Unit) {
+fun CurrenciesColumn(
+    viewModel: HomeScreenViewModel,
+    list: MutableState<MutableList<List<String?>>>,
+    onClose: () -> Unit,
+    onUpdate: (List<InputD>) -> Unit,
+) {
 
     Column(modifier = Modifier.verticalScroll(rememberScrollState())) {
-        for (i in viewModel.listForChangeCurrency) {
+        for (i in list.value) {
             CurrencyChangeLabel(code = i[0]!!, title = i[1]!!, onClick = {
-                viewModel.changeCurrency(i[0]!!){list ->
+                viewModel.changeCurrency(i[0]!!) { list ->
                     onUpdate(list)
                 }
                 onClose()
@@ -250,7 +289,5 @@ fun CurrenciesColumn(viewModel: HomeScreenViewModel, onClose: () -> Unit, onUpda
         }
     }
 }
-
-
 
 
