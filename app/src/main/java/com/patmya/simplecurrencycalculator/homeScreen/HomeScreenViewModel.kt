@@ -1,6 +1,7 @@
 package com.patmya.simplecurrencycalculator.homeScreen
 
 
+import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import com.google.firebase.firestore.ktx.firestore
@@ -37,7 +38,7 @@ class HomeScreenViewModel : ViewModel() {
 
     val currenciesChangeMenuOpenedFrom = mutableStateOf(0)
 
-    var listForChangeCurrency: List<List<String?>> = listOf()
+    var listForChangeCurrency: MutableList<List<String?>> = mutableStateListOf()
 
     private val currenciesInfo = mutableStateOf<CurrenciesInfo?>(null)
 
@@ -147,7 +148,42 @@ class HomeScreenViewModel : ViewModel() {
     }
 
     fun searchCurrency(input: String){
-        //TODO
+
+        // TODO for now you are updating list for change currency, make it update on component
+
+        val info = currenciesInfo.value?.data!!
+
+        when (input) {
+            "avax" -> {
+                val i = info["AVAX"]!!
+                listForChangeCurrency = mutableListOf(listOf(i.code, i.name))
+            }
+            "matic" -> {
+                val i = info["MATIC"]!!
+                listForChangeCurrency = mutableListOf(listOf(i.code, i.name))
+            }
+            else -> {
+
+                listForChangeCurrency = mutableListOf()
+                info.forEach{
+                    val code = it.key.lowercase()
+                    val title = it.value.name!!.lowercase()
+
+                    if (input.length == 3){
+                        if (code == input){
+                            println("You found $title")
+                            listForChangeCurrency = mutableListOf(listOf(code, title))
+                        } else {
+                            println("not found")
+                        }
+                    } else {
+                        if (input in title) {
+                            listForChangeCurrency += mutableListOf(listOf(code, title))
+                        }
+                    }
+                }
+            }
+        }
     }
 
 
@@ -273,7 +309,7 @@ class HomeScreenViewModel : ViewModel() {
                 listForChangeCurrency = currenciesInfo.value?.data!!.map { (key, value) ->
                     listOf(key, value.name)
 
-                }.sortedBy { it[0] }
+                }.sortedBy { it[0] }.toMutableList()
 
                 inputData.forEachIndexed { index, inputD ->
                     if (inputD.active == true) indexOfActive.value = index

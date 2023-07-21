@@ -1,5 +1,7 @@
 package com.patmya.simplecurrencycalculator.homeScreen
 
+
+import android.widget.Toast
 import androidx.compose.animation.*
 import androidx.compose.animation.core.MutableTransitionState
 import androidx.compose.foundation.background
@@ -16,13 +18,13 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.patmya.simplecurrencycalculator.room.InputD
-
 
 
 @Composable
@@ -201,6 +203,11 @@ fun CurrencyChange(viewModel: HomeScreenViewModel, onExit: () -> Unit, onUpdate:
 @Composable
 fun SearchBar(onSearch: (String) -> Unit) {
 
+    val context = LocalContext.current
+    val text = "Provide at least three characters for currency code"
+    val duration = Toast.LENGTH_SHORT
+    val toast = Toast.makeText(context, text, duration)
+
     val primaryVariant = MaterialTheme.colors.primaryVariant
     val onPrimary = MaterialTheme.colors.onPrimary
     val backgroundColor = MaterialTheme.colors.background
@@ -213,7 +220,10 @@ fun SearchBar(onSearch: (String) -> Unit) {
         keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
         keyboardActions = KeyboardActions(
             onSearch = {
-                onSearch(textState.trim())
+                val trimmedText = textState.trim().lowercase()
+                if (trimmedText.length < 3) {
+                    toast.show()
+                } else onSearch(textState.trim())
             }
 
         ),
