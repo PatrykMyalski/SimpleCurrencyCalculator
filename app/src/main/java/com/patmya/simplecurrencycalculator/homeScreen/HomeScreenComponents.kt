@@ -76,7 +76,7 @@ fun NumbersNest(
 
         Column(
             modifier = Modifier
-                .padding(top = 20.dp)
+                .padding(top = 20.dp, bottom = 10.dp)
                 .fillMaxWidth(0.8f)
                 .fillMaxHeight(0.9f),
             verticalArrangement = Arrangement.SpaceBetween,
@@ -118,7 +118,7 @@ fun NumbersNest(
                 }
             }
             Card(
-                modifier = Modifier.fillMaxSize(0.8f),
+                modifier = Modifier.fillMaxSize(0.8f).padding(bottom = 15.dp),
                 shape = CircleShape,
                 elevation = 1.dp,
                 backgroundColor = cardBGColor

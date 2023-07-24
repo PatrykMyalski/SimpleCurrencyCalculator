@@ -84,8 +84,6 @@ fun HomeScreen(
 @Composable
 fun HomeScreenMainView(viewModel: HomeScreenViewModel, onUpdate: (List<InputD>) -> Unit) {
 
-    // TODO only for development
-    //viewModel.transformData()
     val showCurrencyChange = remember {
         mutableStateOf(false)
     }
@@ -133,10 +131,6 @@ fun HomeScreenMainView(viewModel: HomeScreenViewModel, onUpdate: (List<InputD>) 
             }
         }
         if (showCurrencyChange.value) {
-/*            preGeneratedCurrencyChange(viewModel){
-                showCurrencyChange.value = false
-                viewModel.currenciesChangeMenuOpenedFrom.value = 0
-            }*/
             CurrencyChange(viewModel, onExit = {
                 showCurrencyChange.value = false
                 viewModel.currenciesChangeMenuOpenedFrom.value = 0
@@ -154,7 +148,6 @@ fun CurrencyChange(
     onExit: () -> Unit,
     onUpdate: (List<InputD>) -> Unit,
 ) {
-
 
     val interactionSource = MutableInteractionSource()
 
