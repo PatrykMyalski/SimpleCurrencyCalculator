@@ -25,29 +25,20 @@ import com.patmya.simplecurrencycalculator.model.MInputState
 @Composable
 fun TopBar() {
     Card(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier.fillMaxWidth().padding(bottom = 20.dp),
         elevation = 0.dp,
         backgroundColor = MaterialTheme.colors.primary
-    ) {
-        // TODO maybe change to column and add ad
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.Center,
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Text(text = "Currency calculator", fontSize = 20.sp)
-        }
-    }
+    ){}
 }
 
 @Composable
 fun CurrencyChangeLabel(code: String, title: String, onClick: (String) -> Unit) {
-    Card(modifier = Modifier
-        .clickable { onClick(code) },
-        shape = RoundedCornerShape(0.dp)
+    Card(
+        modifier = Modifier.clickable { onClick(code) }, shape = RoundedCornerShape(0.dp)
     ) {
         Row(
-            modifier = Modifier.padding(10.dp)
+            modifier = Modifier
+                .padding(10.dp)
                 .fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
@@ -174,7 +165,6 @@ fun KeyboardRow(numbers: String, onClick: (number: Char) -> Unit) {
 
 @Composable
 fun CurrencyInput(
-    height: Float = 1f,
     state: MutableState<MInputState>,
     onClick: () -> Unit,
     onChangeCurrency: () -> Unit,
@@ -184,22 +174,19 @@ fun CurrencyInput(
 
     Row(
         modifier = Modifier
-            .fillMaxHeight(height)
             .fillMaxWidth(),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.SpaceBetween
     ) {
         Row(
-            modifier = Modifier.fillMaxWidth(0.2f),
-            verticalAlignment = Alignment.CenterVertically
+            modifier = Modifier.fillMaxWidth(0.2f), verticalAlignment = Alignment.CenterVertically
         ) {
             Row(modifier = Modifier.clickable(
                 interactionSource = interactionSource, indication = null
             ) { onChangeCurrency() }) {
                 Text(text = state.value.currency!!, fontSize = 22.sp)
                 Icon(
-                    imageVector = Icons.Default.ArrowDropDown,
-                    contentDescription = "arrow down"
+                    imageVector = Icons.Default.ArrowDropDown, contentDescription = "arrow down"
                 )
             }
         }

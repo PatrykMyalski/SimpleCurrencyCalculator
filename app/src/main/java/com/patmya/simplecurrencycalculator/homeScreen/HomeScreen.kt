@@ -3,6 +3,7 @@ package com.patmya.simplecurrencycalculator.homeScreen
 
 import android.annotation.SuppressLint
 import android.widget.Toast
+import androidx.activity.compose.BackHandler
 import androidx.compose.animation.*
 import androidx.compose.animation.core.MutableTransitionState
 import androidx.compose.foundation.background
@@ -96,15 +97,16 @@ fun HomeScreenMainView(viewModel: HomeScreenViewModel, onUpdate: (List<InputD>) 
                 modifier = Modifier
                     .fillMaxWidth()
                     .fillMaxHeight(0.5f)
-                    .padding(horizontal = 20.dp)
+                    .padding(horizontal = 20.dp),
+                verticalArrangement = Arrangement.SpaceAround
             ) {
-                CurrencyInput(0.33f, state = viewModel.firstInputState, onClick = {
+                CurrencyInput(state = viewModel.firstInputState, onClick = {
                     viewModel.focusInput(0)
                 }, onChangeCurrency = {
                     showCurrencyChange.value = true
                     viewModel.currenciesChangeMenuOpenedFrom.value = 0
                 })
-                CurrencyInput(0.5f, state = viewModel.secondInputState, onClick = {
+                CurrencyInput(state = viewModel.secondInputState, onClick = {
                     viewModel.focusInput(1)
                 }, onChangeCurrency = {
                     showCurrencyChange.value = true
@@ -168,6 +170,9 @@ fun CurrencyChange(
     }
 
     val listOfCurrencies = mutableStateOf(viewModel.listForChangeCurrency)
+    BackHandler {
+        animationState.targetState = false
+    }
 
     AnimatedVisibility(
         visibleState = animationState, enter = slideInVertically(), exit = shrinkVertically()
@@ -193,12 +198,10 @@ fun CurrencyChange(
                         viewModel.searchCurrency(it) { listToUpdate ->
                             listOfCurrencies.value = listToUpdate
                         }
-                    },
-                        onClear = {
-                            listOfCurrencies.value = viewModel.listForChangeCurrency
-                        })
-                    CurrenciesColumn(
-                        viewModel,
+                    }, onClear = {
+                        listOfCurrencies.value = viewModel.listForChangeCurrency
+                    })
+                    CurrenciesColumn(viewModel,
                         list = listOfCurrencies,
                         onClose = { animationState.targetState = false }) { list ->
                         onUpdate(list)
@@ -206,18 +209,24 @@ fun CurrencyChange(
                 }
                 Card(
                     modifier = Modifier
-                        .padding(top = 15.dp)
+                        .fillMaxSize()
                         .clickable { animationState.targetState = false },
                     shape = RoundedCornerShape(10.dp),
-                    backgroundColor = MaterialTheme.colors.primary
+                    backgroundColor = MaterialTheme.colors.primaryVariant
                 ) {
-                    Text(
-                        modifier = Modifier.padding(horizontal = 10.dp, vertical = 5.dp),
-                        text = "Cancel",
-                        fontSize = 24.sp,
-                        color = MaterialTheme.colors.secondary,
-                        textAlign = TextAlign.Center
-                    )
+                    Column(
+                        modifier = Modifier.fillMaxSize(),
+                        verticalArrangement = Arrangement.Center,
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        Text(
+                            modifier = Modifier.padding(horizontal = 10.dp, vertical = 5.dp),
+                            text = "Cancel",
+                            fontSize = 24.sp,
+                            color = MaterialTheme.colors.secondary,
+                            textAlign = TextAlign.Center
+                        )
+                    }
                 }
             }
         }
@@ -237,13 +246,15 @@ fun SearchBar(onSearch: (String) -> Unit, onClear: () -> Unit) {
     val backgroundColor = MaterialTheme.colors.background
 
     var textState by remember { mutableStateOf("") }
-    OutlinedTextField(value = textState, onValueChange = { textState = it }, modifier = Modifier
-        .fillMaxWidth()
-        .padding(horizontal = 10.dp), shape = RoundedCornerShape(5.dp),
+    OutlinedTextField(value = textState,
+        onValueChange = { textState = it },
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 10.dp),
+        shape = RoundedCornerShape(5.dp),
         placeholder = { Text(text = "Currency code or name") },
         trailingIcon = {
-            Icon(
-                imageVector = Icons.Default.Close,
+            Icon(imageVector = Icons.Default.Close,
                 contentDescription = "clear input",
                 modifier = Modifier.clickable {
                     textState = ""
@@ -251,13 +262,12 @@ fun SearchBar(onSearch: (String) -> Unit, onClear: () -> Unit) {
                 })
         },
         keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
-        keyboardActions = KeyboardActions(
-            onSearch = {
-                val trimmedText = textState.trim().lowercase()
-                if (trimmedText.length < 3) {
-                    toast.show()
-                } else onSearch(textState.trim().lowercase())
-            }
+        keyboardActions = KeyboardActions(onSearch = {
+            val trimmedText = textState.trim().lowercase()
+            if (trimmedText.length < 3) {
+                toast.show()
+            } else onSearch(textState.trim().lowercase())
+        }
 
         ),
         colors = TextFieldDefaults.outlinedTextFieldColors(

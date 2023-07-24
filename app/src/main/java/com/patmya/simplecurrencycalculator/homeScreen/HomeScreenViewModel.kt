@@ -76,7 +76,8 @@ class HomeScreenViewModel : ViewModel() {
         val number =
             valueOfActiveInput.toDouble() * calculateToUsdOfBaseInput / calculateToUsdOfActiveInput
 
-        return BigDecimal(number).setScale(4, RoundingMode.HALF_UP).toString()
+        val rounded = BigDecimal(number).setScale(2, RoundingMode.HALF_UP).toString()
+        return if (rounded.take(4) == "0.00") "< 0.005" else rounded
     }
 
     private fun updateRoom(): List<InputD> {
@@ -84,28 +85,13 @@ class HomeScreenViewModel : ViewModel() {
             val state = mutableState.value
             when (index) {
                 0 -> InputD(
-                    0,
-                    state.currency,
-                    true,
-                    state.value,
-                    state.calculateToUSD,
-                    state.fullTitle
+                    0, state.currency, true, state.value, state.calculateToUSD, state.fullTitle
                 )
                 1 -> InputD(
-                    1,
-                    state.currency,
-                    false,
-                    state.value,
-                    state.calculateToUSD,
-                    state.fullTitle
+                    1, state.currency, false, state.value, state.calculateToUSD, state.fullTitle
                 )
                 2 -> InputD(
-                    2,
-                    state.currency,
-                    false,
-                    state.value,
-                    state.calculateToUSD,
-                    state.fullTitle
+                    2, state.currency, false, state.value, state.calculateToUSD, state.fullTitle
                 )
                 else -> throw Exception("Unexpected input state")
             }
@@ -121,15 +107,19 @@ class HomeScreenViewModel : ViewModel() {
     }
 
     fun changeInput(number: Char, onUpdate: (List<InputD>) -> Unit) {
-        //TODO TEST
 
         if (checkIfNumberFormatException(
-                listOfInputs[indexOfActive.value!!].value.value!!,
-                number
+                listOfInputs[indexOfActive.value!!].value.value!!, number
             )
         ) return
 
-        val valueOfActiveInput = listOfInputs[indexOfActive.value!!].value.value + number
+        var valueOfInput = listOfInputs[indexOfActive.value!!].value.value!!
+
+        if ('.' in valueOfInput) {
+            if (valueOfInput.length - valueOfInput.indexOf('.') == 3) return
+        }
+
+        if (valueOfInput == "< 0.005") valueOfInput = "0"
 
         val calculateToUsdOfActiveInput = listOfInputs[indexOfActive.value!!].value.calculateToUSD
 
@@ -137,33 +127,33 @@ class HomeScreenViewModel : ViewModel() {
             when (index) {
                 0 -> firstInputState.value = firstInputState.value.copy(
                     value = if (inputState.value.active!!) {
-                        addNumbers(inputState.value.value!!, number)
+                        addNumbers(valueOfInput, number)
                     } else {
                         calculateValue(
                             inputState.value.calculateToUSD!!,
-                            valueOfActiveInput,
+                            addNumbers(valueOfInput, number),
                             calculateToUsdOfActiveInput!!
                         )
                     }
                 )
                 1 -> secondInputState.value = secondInputState.value.copy(
                     value = if (inputState.value.active!!) {
-                        addNumbers(inputState.value.value!!, number)
+                        addNumbers(valueOfInput, number)
                     } else {
                         calculateValue(
                             inputState.value.calculateToUSD!!,
-                            valueOfActiveInput,
+                            addNumbers(valueOfInput, number),
                             calculateToUsdOfActiveInput!!
                         )
                     }
                 )
                 2 -> thirdInputState.value = thirdInputState.value.copy(
                     value = if (inputState.value.active!!) {
-                        addNumbers(inputState.value.value!!, number)
+                        addNumbers(valueOfInput, number)
                     } else {
                         calculateValue(
                             inputState.value.calculateToUSD!!,
-                            valueOfActiveInput,
+                            addNumbers(valueOfInput, number),
                             calculateToUsdOfActiveInput!!
                         )
                     }
@@ -226,26 +216,19 @@ class HomeScreenViewModel : ViewModel() {
 
         when (currenciesChangeMenuOpenedFrom.value) {
             0 -> firstInputState.value = firstInputState.value.copy(
-                currency = code,
-                calculateToUSD = calculateToUsdValue,
-                fullTitle = newCurrency.name
+                currency = code, calculateToUSD = calculateToUsdValue, fullTitle = newCurrency.name
             )
             1 -> secondInputState.value = secondInputState.value.copy(
-                currency = code,
-                calculateToUSD = calculateToUsdValue,
-                fullTitle = newCurrency.name
+                currency = code, calculateToUSD = calculateToUsdValue, fullTitle = newCurrency.name
             )
             2 -> thirdInputState.value = thirdInputState.value.copy(
-                currency = code,
-                calculateToUSD = calculateToUsdValue,
-                fullTitle = newCurrency.name
+                currency = code, calculateToUSD = calculateToUsdValue, fullTitle = newCurrency.name
             )
         }
 
         val valueOfActiveInput = listOfInputs[indexOfActive.value!!].value.value!!
 
-        val calculateToUsdOfActiveInput =
-            listOfInputs[indexOfActive.value!!].value.calculateToUSD!!
+        val calculateToUsdOfActiveInput = listOfInputs[indexOfActive.value!!].value.calculateToUSD!!
 
 
         for ((index, state) in listOfInputs.withIndex()) {
@@ -290,48 +273,44 @@ class HomeScreenViewModel : ViewModel() {
 
         val valueOfActiveInput = deleteLast(listOfInputs[indexOfActive.value!!].value.value!!)
 
-        val calculateToUsdOfActiveInput =
-            listOfInputs[indexOfActive.value!!].value.calculateToUSD
+        val calculateToUsdOfActiveInput = listOfInputs[indexOfActive.value!!].value.calculateToUSD
 
         for ((index, inputState) in listOfInputs.withIndex()) {
             when (index) {
-                0 -> firstInputState.value =
-                    firstInputState.value.copy(
-                        value = if (inputState.value.active!!) {
-                            deleteLast(inputState.value.value!!)
-                        } else {
-                            calculateValue(
-                                inputState.value.calculateToUSD!!,
-                                valueOfActiveInput,
-                                calculateToUsdOfActiveInput!!
-                            )
-                        }
-                    )
+                0 -> firstInputState.value = firstInputState.value.copy(
+                    value = if (inputState.value.active!!) {
+                        deleteLast(inputState.value.value!!)
+                    } else {
+                        calculateValue(
+                            inputState.value.calculateToUSD!!,
+                            valueOfActiveInput,
+                            calculateToUsdOfActiveInput!!
+                        )
+                    }
+                )
 
-                1 -> secondInputState.value =
-                    secondInputState.value.copy(
-                        value = if (inputState.value.active!!) {
-                            deleteLast(inputState.value.value!!)
-                        } else {
-                            calculateValue(
-                                inputState.value.calculateToUSD!!,
-                                valueOfActiveInput,
-                                calculateToUsdOfActiveInput!!
-                            )
-                        }
-                    )
-                2 -> thirdInputState.value =
-                    thirdInputState.value.copy(
-                        value = if (inputState.value.active!!) {
-                            deleteLast(inputState.value.value!!)
-                        } else {
-                            calculateValue(
-                                inputState.value.calculateToUSD!!,
-                                valueOfActiveInput,
-                                calculateToUsdOfActiveInput!!
-                            )
-                        }
-                    )
+                1 -> secondInputState.value = secondInputState.value.copy(
+                    value = if (inputState.value.active!!) {
+                        deleteLast(inputState.value.value!!)
+                    } else {
+                        calculateValue(
+                            inputState.value.calculateToUSD!!,
+                            valueOfActiveInput,
+                            calculateToUsdOfActiveInput!!
+                        )
+                    }
+                )
+                2 -> thirdInputState.value = thirdInputState.value.copy(
+                    value = if (inputState.value.active!!) {
+                        deleteLast(inputState.value.value!!)
+                    } else {
+                        calculateValue(
+                            inputState.value.calculateToUSD!!,
+                            valueOfActiveInput,
+                            calculateToUsdOfActiveInput!!
+                        )
+                    }
+                )
             }
 
         }

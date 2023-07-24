@@ -8,6 +8,7 @@ import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Surface
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.Modifier
+import androidx.core.view.WindowCompat
 import androidx.room.Room
 import com.patmya.simplecurrencycalculator.homeScreen.HomeScreen
 import com.patmya.simplecurrencycalculator.homeScreen.ProgressIndicator
@@ -19,6 +20,11 @@ class MainActivity : ComponentActivity() {
 
 
     override fun onCreate(savedInstanceState: Bundle?) {
+
+        WindowCompat.setDecorFitsSystemWindows(
+            window,
+            false
+        )
 
         val inputsState = mutableStateOf<List<InputD>>(emptyList())
 
