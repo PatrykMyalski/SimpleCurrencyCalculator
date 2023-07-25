@@ -30,6 +30,7 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.patmya.simplecurrencycalculator.room.InputD
 
+
 @Composable
 fun HomeScreen(
     inputData: List<InputD>,
@@ -76,10 +77,6 @@ fun HomeScreen(
         }
     }
 }
-
-/*val preGeneratedCurrencyChange: @Composable (viewModel: HomeScreenViewModel, onExit: () -> Unit) -> Unit = { viewModel, onExit ->
-    CurrencyChange(viewModel = viewModel, onExit = { onExit() })
-}*/
 
 @Composable
 fun HomeScreenMainView(viewModel: HomeScreenViewModel, onUpdate: (List<InputD>) -> Unit) {
@@ -173,6 +170,7 @@ fun CurrencyChange(
         Card(
             modifier = Modifier
                 .fillMaxSize()
+                .padding(top = 30.dp)
                 .clickable(interactionSource = interactionSource, indication = null) {
                     animationState.targetState = false
                 },
@@ -233,14 +231,19 @@ fun SearchBar(onSearch: (String) -> Unit, onClear: () -> Unit) {
     val text = "Provide at least three characters for currency code"
     val duration = Toast.LENGTH_SHORT
     val toast = Toast.makeText(context, text, duration)
-
     val primaryVariant = MaterialTheme.colors.primaryVariant
     val onPrimary = MaterialTheme.colors.onPrimary
     val backgroundColor = MaterialTheme.colors.background
 
     var textState by remember { mutableStateOf("") }
     OutlinedTextField(value = textState,
-        onValueChange = { textState = it },
+        onValueChange = {
+            textState = it
+            if (it.trim().length >= 3 ) {
+                onSearch(it.trim().lowercase())
+            }
+
+        },
         modifier = Modifier
             .fillMaxWidth()
             .padding(horizontal = 10.dp),
@@ -256,10 +259,8 @@ fun SearchBar(onSearch: (String) -> Unit, onClear: () -> Unit) {
         },
         keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
         keyboardActions = KeyboardActions(onSearch = {
-            val trimmedText = textState.trim().lowercase()
-            if (trimmedText.length < 3) {
-                toast.show()
-            } else onSearch(textState.trim().lowercase())
+            val trimmedInput = textState.trim()
+            if (trimmedInput.length >= 3) onSearch(trimmedInput.lowercase()) else toast.show()
         }
 
         ),
