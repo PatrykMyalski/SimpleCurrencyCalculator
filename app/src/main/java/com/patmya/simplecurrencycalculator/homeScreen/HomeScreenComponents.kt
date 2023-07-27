@@ -25,10 +25,12 @@ import com.patmya.simplecurrencycalculator.model.MInputState
 @Composable
 fun TopBar() {
     Card(
-        modifier = Modifier.fillMaxWidth().padding(bottom = 20.dp),
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(bottom = 20.dp),
         elevation = 0.dp,
         backgroundColor = MaterialTheme.colors.primary
-    ){}
+    ) {}
 }
 
 @Composable
@@ -118,7 +120,9 @@ fun NumbersNest(
                 }
             }
             Card(
-                modifier = Modifier.fillMaxSize(0.8f).padding(bottom = 15.dp),
+                modifier = Modifier
+                    .fillMaxSize(0.8f)
+                    .padding(bottom = 15.dp),
                 shape = CircleShape,
                 elevation = 1.dp,
                 backgroundColor = cardBGColor
@@ -173,8 +177,7 @@ fun CurrencyInput(
     val interactionSource = MutableInteractionSource()
 
     Row(
-        modifier = Modifier
-            .fillMaxWidth(),
+        modifier = Modifier.fillMaxWidth(),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.SpaceBetween
     ) {
@@ -194,7 +197,7 @@ fun CurrencyInput(
             modifier = Modifier
                 .fillMaxWidth()
                 .clickable(interactionSource = interactionSource, indication = null) {
-                    onClick()
+                    if (!state.value.active!!) onClick()
                 }, horizontalAlignment = Alignment.End
         ) {
             Text(

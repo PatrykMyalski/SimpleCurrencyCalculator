@@ -238,215 +238,215 @@ class HomeScreenViewModel : ViewModel() {
                     } else if (input in titleLowercase) {
                         listForSearch += ifCorrectToUpdate
                     }
-            }
-            // if there is nothing found, returning list consisting of element that will inform of unsuccessful search
-            if (listForSearch.isEmpty()) {
-                onDone(mutableListOf(listOf("", "Not Found")))
-            } else onDone(listForSearch)
-        }
-    }
-}
-
-
-// function that is handling currency change
-fun changeCurrency(code: String, onUpdate: (List<InputD>) -> Unit) {
-
-    // code is passed from composable and it is pointing at currency code
-    // getting there exchange rates of new currency
-    val calculateToUsdValue = currenciesData.value?.data!![code]?.value
-    // getting data of new currency
-    val newCurrency = currenciesInfo.value!!.data?.get(code)!!
-
-    // iterating and changing currency of field that changing menu was opened
-    when (currenciesChangeMenuOpenedFrom.value) {
-        0 -> firstInputState.value = firstInputState.value.copy(
-            currency = code, calculateToUSD = calculateToUsdValue, fullTitle = newCurrency.name
-        )
-        1 -> secondInputState.value = secondInputState.value.copy(
-            currency = code, calculateToUSD = calculateToUsdValue, fullTitle = newCurrency.name
-        )
-        2 -> thirdInputState.value = thirdInputState.value.copy(
-            currency = code, calculateToUSD = calculateToUsdValue, fullTitle = newCurrency.name
-        )
-    }
-
-    val valueOfActiveInput = listOfInputs[indexOfActive.value!!].value.value!!
-
-    val calculateToUsdOfActiveInput = listOfInputs[indexOfActive.value!!].value.calculateToUSD!!
-
-
-    // calculating all values
-    for ((index, state) in listOfInputs.withIndex()) {
-
-        if (indexOfActive.value != index) {
-            when (index) {
-                0 -> firstInputState.value = firstInputState.value.copy(
-                    value = calculateValue(
-                        state.value.calculateToUSD!!,
-                        valueOfActiveInput,
-                        calculateToUsdOfActiveInput
-                    )
-                )
-                1 -> secondInputState.value = secondInputState.value.copy(
-                    value = calculateValue(
-                        state.value.calculateToUSD!!,
-                        valueOfActiveInput,
-                        calculateToUsdOfActiveInput
-                    )
-                )
-                2 -> thirdInputState.value = thirdInputState.value.copy(
-                    value = calculateValue(
-                        state.value.calculateToUSD!!,
-                        valueOfActiveInput,
-                        calculateToUsdOfActiveInput
-                    )
-                )
+                }
+                // if there is nothing found, returning list consisting of element that will inform of unsuccessful search
+                if (listForSearch.isEmpty()) {
+                    onDone(mutableListOf(listOf("", "Not Found")))
+                } else onDone(listForSearch)
             }
         }
     }
-    // updating ROOM
-    onUpdate(updateRoom())
-}
 
 
-// handling AC click
-fun clearInputs() {
-    firstInputState.value = firstInputState.value.copy(value = "0")
-    secondInputState.value = secondInputState.value.copy(value = "0")
-    thirdInputState.value = thirdInputState.value.copy(value = "0")
-}
+    // function that is handling currency change
+    fun changeCurrency(code: String, onUpdate: (List<InputD>) -> Unit) {
 
-//handling backSpace click
-fun backSpace() {
+        // code is passed from composable and it is pointing at currency code
+        // getting there exchange rates of new currency
+        val calculateToUsdValue = currenciesData.value?.data!![code]?.value
+        // getting data of new currency
+        val newCurrency = currenciesInfo.value!!.data?.get(code)!!
 
-    val valueOfActiveInput = deleteLast(listOfInputs[indexOfActive.value!!].value.value!!)
-
-    val calculateToUsdOfActiveInput = listOfInputs[indexOfActive.value!!].value.calculateToUSD
-
-    // calculating values of all fields according to active input filed change
-    for ((index, inputState) in listOfInputs.withIndex()) {
-        when (index) {
+        // iterating and changing currency of field that changing menu was opened
+        when (currenciesChangeMenuOpenedFrom.value) {
             0 -> firstInputState.value = firstInputState.value.copy(
-                value = if (inputState.value.active!!) {
-                    deleteLast(inputState.value.value!!)
-                } else {
-                    calculateValue(
-                        inputState.value.calculateToUSD!!,
-                        valueOfActiveInput,
-                        calculateToUsdOfActiveInput!!
-                    )
-                }
+                currency = code, calculateToUSD = calculateToUsdValue, fullTitle = newCurrency.name
             )
-
             1 -> secondInputState.value = secondInputState.value.copy(
-                value = if (inputState.value.active!!) {
-                    deleteLast(inputState.value.value!!)
-                } else {
-                    calculateValue(
-                        inputState.value.calculateToUSD!!,
-                        valueOfActiveInput,
-                        calculateToUsdOfActiveInput!!
-                    )
-                }
+                currency = code, calculateToUSD = calculateToUsdValue, fullTitle = newCurrency.name
             )
             2 -> thirdInputState.value = thirdInputState.value.copy(
-                value = if (inputState.value.active!!) {
-                    deleteLast(inputState.value.value!!)
-                } else {
-                    calculateValue(
-                        inputState.value.calculateToUSD!!,
-                        valueOfActiveInput,
-                        calculateToUsdOfActiveInput!!
-                    )
-                }
+                currency = code, calculateToUSD = calculateToUsdValue, fullTitle = newCurrency.name
             )
         }
 
-    }
-}
+        val valueOfActiveInput = listOfInputs[indexOfActive.value!!].value.value!!
+
+        val calculateToUsdOfActiveInput = listOfInputs[indexOfActive.value!!].value.calculateToUSD!!
 
 
-// loading data on app launch
-fun loadData(inputData: List<InputD>) {
-    // input data is data that is passed from main activity out of ROOM
+        // calculating all values
+        for ((index, state) in listOfInputs.withIndex()) {
 
-    // getting reference from firebase,
-    // transforming infoData and exchange rates to usable objects
-    infoReference.get().addOnSuccessListener { infoData ->
-        val j = infoData.toObject<CurrenciesInfo>()
-        currenciesInfo.value = j
-        dataReference.get().addOnSuccessListener { data ->
-            val d = data.toObject<CurrenciesData>()
-            currenciesData.value = d
-
-            // overriding listForChangeCurrency with lists of currency code and full currency title pairs
-            listForChangeCurrency = currenciesInfo.value?.data!!.map { (key, value) ->
-                listOf(key, value.name)
-                // sorting it alphabetically
-            }.sortedBy { it[0] }.toMutableList()
-
-            // iterating through data of inputs, transforming to usable objects and overriding state
-            inputData.forEachIndexed { index, inputD ->
-                if (inputD.active == true) indexOfActive.value = index
-                val inputValues = MInputState(
-                    currency = inputD.currency,
-                    active = inputD.active,
-                    recentlyChanged = false,
-                    value = inputD.value,
-                    calculateToUSD = inputD.calculateToUSD,
-                    fullTitle = inputD.fullTitle
-                )
+            if (indexOfActive.value != index) {
                 when (index) {
-                    0 -> firstInputState.value = inputValues
-                    1 -> secondInputState.value = inputValues
-                    2 -> thirdInputState.value = inputValues
+                    0 -> firstInputState.value = firstInputState.value.copy(
+                        value = calculateValue(
+                            state.value.calculateToUSD!!,
+                            valueOfActiveInput,
+                            calculateToUsdOfActiveInput
+                        )
+                    )
+                    1 -> secondInputState.value = secondInputState.value.copy(
+                        value = calculateValue(
+                            state.value.calculateToUSD!!,
+                            valueOfActiveInput,
+                            calculateToUsdOfActiveInput
+                        )
+                    )
+                    2 -> thirdInputState.value = thirdInputState.value.copy(
+                        value = calculateValue(
+                            state.value.calculateToUSD!!,
+                            valueOfActiveInput,
+                            calculateToUsdOfActiveInput
+                        )
+                    )
                 }
             }
-            // when everything went well then dataLoaded value can be changed to true and UI will be shown to user
-            dataLoaded.value =
-                currenciesInfo.value != null && currenciesData.value != null && listOfInputs.isNotEmpty() && listForChangeCurrency.isNotEmpty()
+        }
+        // updating ROOM
+        onUpdate(updateRoom())
+    }
 
+
+    // handling AC click
+    fun clearInputs() {
+        firstInputState.value = firstInputState.value.copy(value = "0")
+        secondInputState.value = secondInputState.value.copy(value = "0")
+        thirdInputState.value = thirdInputState.value.copy(value = "0")
+    }
+
+    //handling backSpace click
+    fun backSpace() {
+
+        val valueOfActiveInput = deleteLast(listOfInputs[indexOfActive.value!!].value.value!!)
+
+        val calculateToUsdOfActiveInput = listOfInputs[indexOfActive.value!!].value.calculateToUSD
+
+        // calculating values of all fields according to active input filed change
+        for ((index, inputState) in listOfInputs.withIndex()) {
+            when (index) {
+                0 -> firstInputState.value = firstInputState.value.copy(
+                    value = if (inputState.value.active!!) {
+                        deleteLast(inputState.value.value!!)
+                    } else {
+                        calculateValue(
+                            inputState.value.calculateToUSD!!,
+                            valueOfActiveInput,
+                            calculateToUsdOfActiveInput!!
+                        )
+                    }
+                )
+
+                1 -> secondInputState.value = secondInputState.value.copy(
+                    value = if (inputState.value.active!!) {
+                        deleteLast(inputState.value.value!!)
+                    } else {
+                        calculateValue(
+                            inputState.value.calculateToUSD!!,
+                            valueOfActiveInput,
+                            calculateToUsdOfActiveInput!!
+                        )
+                    }
+                )
+                2 -> thirdInputState.value = thirdInputState.value.copy(
+                    value = if (inputState.value.active!!) {
+                        deleteLast(inputState.value.value!!)
+                    } else {
+                        calculateValue(
+                            inputState.value.calculateToUSD!!,
+                            valueOfActiveInput,
+                            calculateToUsdOfActiveInput!!
+                        )
+                    }
+                )
+            }
+
+        }
+    }
+
+
+    // loading data on app launch
+    fun loadData(inputData: List<InputD>) {
+        // input data is data that is passed from main activity out of ROOM
+
+        // getting reference from firebase,
+        // transforming infoData and exchange rates to usable objects
+        infoReference.get().addOnSuccessListener { infoData ->
+            val j = infoData.toObject<CurrenciesInfo>()
+            currenciesInfo.value = j
+            dataReference.get().addOnSuccessListener { data ->
+                val d = data.toObject<CurrenciesData>()
+                currenciesData.value = d
+
+                // overriding listForChangeCurrency with lists of currency code and full currency title pairs
+                listForChangeCurrency = currenciesInfo.value?.data!!.map { (key, value) ->
+                    listOf(key, value.name)
+                    // sorting it alphabetically
+                }.sortedBy { it[0] }.toMutableList()
+
+                // iterating through data of inputs, transforming to usable objects and overriding state
+                inputData.forEachIndexed { index, inputD ->
+                    if (inputD.active == true) indexOfActive.value = index
+                    val inputValues = MInputState(
+                        currency = inputD.currency,
+                        active = inputD.active,
+                        recentlyChanged = false,
+                        value = inputD.value,
+                        calculateToUSD = inputD.calculateToUSD,
+                        fullTitle = inputD.fullTitle
+                    )
+                    when (index) {
+                        0 -> firstInputState.value = inputValues
+                        1 -> secondInputState.value = inputValues
+                        2 -> thirdInputState.value = inputValues
+                    }
+                }
+                // when everything went well then dataLoaded value can be changed to true and UI will be shown to user
+                dataLoaded.value =
+                    currenciesInfo.value != null && currenciesData.value != null && listOfInputs.isNotEmpty() && listForChangeCurrency.isNotEmpty()
+
+            }.addOnFailureListener {
+                println(it)
+            }
         }.addOnFailureListener {
             println(it)
         }
-    }.addOnFailureListener {
-        println(it)
     }
-}
 
-// legacy function that was responsible for api request and passing it to firebase as a method to walk around api limitations
-fun transformData() {
-
-
-    CoroutineScope(Dispatchers.Main).launch {
-        println("start")
-        withContext(Dispatchers.IO) {
-            val client = OkHttpClient()
-
-            val request = Request.Builder()
-                .url("https://api.currencyapi.com/v3/currencies?apikey=DfHgL2ZN6L0kDaxrBKOwgDhYQeHIlyjkQ7R6dNMl&currencies=")
-                .build()
-
-            val response: Response = client.newCall(request).execute()
-
-            if (response.isSuccessful) {
-                val responseBody = response.body?.string()
-
-                val gson = Gson()
-
-                val data = gson.fromJson(responseBody, CurrenciesInfo::class.java)
+    // legacy function that was responsible for api request and passing it to firebase as a method to walk around api limitations
+    fun transformData() {
 
 
-                infoReference.set(data).addOnSuccessListener {
-                    println("data successfully posted on firebase firestore")
+        CoroutineScope(Dispatchers.Main).launch {
+            println("start")
+            withContext(Dispatchers.IO) {
+                val client = OkHttpClient()
+
+                val request = Request.Builder()
+                    .url("https://api.currencyapi.com/v3/currencies?apikey=DfHgL2ZN6L0kDaxrBKOwgDhYQeHIlyjkQ7R6dNMl&currencies=")
+                    .build()
+
+                val response: Response = client.newCall(request).execute()
+
+                if (response.isSuccessful) {
+                    val responseBody = response.body?.string()
+
+                    val gson = Gson()
+
+                    val data = gson.fromJson(responseBody, CurrenciesInfo::class.java)
+
+
+                    infoReference.set(data).addOnSuccessListener {
+                        println("data successfully posted on firebase firestore")
+                    }
+
+                } else {
+                    println("error occurs")
                 }
-
-            } else {
-                println("error occurs")
             }
+            println("done")
         }
-        println("done")
     }
-}
 }
 

@@ -24,9 +24,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.input.ImeAction
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.patmya.simplecurrencycalculator.room.InputD
 
@@ -174,7 +172,7 @@ fun CurrencyChange(
                 .clickable(interactionSource = interactionSource, indication = null) {
                     animationState.targetState = false
                 },
-            backgroundColor = Color(0, 0, 0, 20),
+            backgroundColor = Color(0, 0, 0, 40),
             elevation = 0.dp,
             shape = RoundedCornerShape(0.dp)
 
@@ -182,7 +180,7 @@ fun CurrencyChange(
             Column(horizontalAlignment = Alignment.CenterHorizontally) {
                 Column(
                     modifier = Modifier
-                        .fillMaxHeight(0.9f)
+                        .fillMaxHeight(0.88f)
                         .background(MaterialTheme.colors.background)
                 ) {
                     SearchBar(onSearch = {
@@ -196,27 +194,6 @@ fun CurrencyChange(
                         list = listOfCurrencies,
                         onClose = { animationState.targetState = false }) { list ->
                         onUpdate(list)
-                    }
-                }
-                Card(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .clickable { animationState.targetState = false },
-                    shape = RoundedCornerShape(10.dp),
-                    backgroundColor = MaterialTheme.colors.primaryVariant
-                ) {
-                    Column(
-                        modifier = Modifier.fillMaxSize(),
-                        verticalArrangement = Arrangement.Center,
-                        horizontalAlignment = Alignment.CenterHorizontally
-                    ) {
-                        Text(
-                            modifier = Modifier.padding(horizontal = 10.dp, vertical = 5.dp),
-                            text = "Cancel",
-                            fontSize = 24.sp,
-                            color = MaterialTheme.colors.secondary,
-                            textAlign = TextAlign.Center
-                        )
                     }
                 }
             }
@@ -239,7 +216,7 @@ fun SearchBar(onSearch: (String) -> Unit, onClear: () -> Unit) {
     OutlinedTextField(value = textState,
         onValueChange = {
             textState = it
-            if (it.trim().length >= 3 ) {
+            if (it.trim().length >= 3) {
                 onSearch(it.trim().lowercase())
             }
 
