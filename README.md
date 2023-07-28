@@ -26,7 +26,7 @@ It is a slightly improved version of the currency calculator I had on my old Xia
 - State of inputs is saved on the user's device using [ROOM](https://developer.android.com/training/data-storage/room)
 - Nice and minimalistic look in both light mode and dark mode
 
-## Screenshoots
+## Screenshots
 
 <img src="screenshots/calculator_light.png" alt="Image 1" width="200" height="400"><img src="screenshots/currency_light.png" alt="Image 3" width="200" height="400">
 
