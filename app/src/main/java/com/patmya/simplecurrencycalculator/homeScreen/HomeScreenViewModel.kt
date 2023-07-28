@@ -7,18 +7,10 @@ import androidx.lifecycle.ViewModel
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.firestore.ktx.toObject
 import com.google.firebase.ktx.Firebase
-import com.google.gson.Gson
 import com.patmya.simplecurrencycalculator.model.MInputState
 import com.patmya.simplecurrencycalculator.model.CurrenciesInfo
 import com.patmya.simplecurrencycalculator.model.CurrenciesData
 import com.patmya.simplecurrencycalculator.room.InputD
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
-import okhttp3.OkHttpClient
-import okhttp3.Request
-import okhttp3.Response
 import java.math.BigDecimal
 import java.math.RoundingMode
 
@@ -413,40 +405,4 @@ class HomeScreenViewModel : ViewModel() {
             println(it)
         }
     }
-
-    // legacy function that was responsible for api request and passing it to firebase as a method to walk around api limitations
-    fun transformData() {
-
-
-        CoroutineScope(Dispatchers.Main).launch {
-            println("start")
-            withContext(Dispatchers.IO) {
-                val client = OkHttpClient()
-
-                val request = Request.Builder()
-                    .url("https://api.currencyapi.com/v3/currencies?apikey=DfHgL2ZN6L0kDaxrBKOwgDhYQeHIlyjkQ7R6dNMl&currencies=")
-                    .build()
-
-                val response: Response = client.newCall(request).execute()
-
-                if (response.isSuccessful) {
-                    val responseBody = response.body?.string()
-
-                    val gson = Gson()
-
-                    val data = gson.fromJson(responseBody, CurrenciesInfo::class.java)
-
-
-                    infoReference.set(data).addOnSuccessListener {
-                        println("data successfully posted on firebase firestore")
-                    }
-
-                } else {
-                    println("error occurs")
-                }
-            }
-            println("done")
-        }
-    }
 }
-
